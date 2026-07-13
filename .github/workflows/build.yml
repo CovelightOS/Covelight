@@ -1,0 +1,48 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Placeholder until T1.1 (docs/plan/02-phase1-shell.md): headless Godot 4
+  # export check for /shell. Real job will need a Godot version pin (matrix
+  # candidate once multiple export targets exist) and an actions/cache for
+  # the Godot export templates.
+  godot-export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No-op placeholder
+        run: echo "godot-export placeholder — nothing to build yet, filled in by T1.1"
+
+  # Placeholder until T2.1 (docs/plan/03-phase2-kiosk.md): Gradle build of
+  # /app. Real job will need a JDK setup step and, later, an Android API
+  # level matrix for the device-test matrix (Phase 3).
+  android-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No-op placeholder
+        run: echo "android-build placeholder — nothing to build yet, filled in by T2.1"
+
+  # T0.4 (docs/plan/01-phase0-foundation.md): covelight-crypto + the sign CLI
+  # in /tools. Phase 4 adds syncd to this same workspace/job; a Rust
+  # toolchain matrix can follow once more than one crate needs one.
+  rust-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: cargo test
+        working-directory: tools
+        run: cargo test --workspace
+      - name: cargo fmt --check
+        working-directory: tools
+        run: cargo fmt --check
+      - name: cargo clippy
+        working-directory: tools
+        run: cargo clippy --workspace --all-targets -- -D warnings

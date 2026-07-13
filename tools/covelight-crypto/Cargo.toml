@@ -1,0 +1,11 @@
+[package]
+name = "covelight-crypto"
+version = "0.1.0"
+edition = "2021"
+description = "Ed25519 content-signing primitives for Covelight. Implements docs/design/signing.md. The only Ed25519 implementation in the project — consumed by /tools/sign, the shell's GDExtension (T1.4), and later syncd-adjacent import checks (T2.6)."
+publish = false
+
+[dependencies]
+ed25519-dalek = { version = "3.0.0", features = ["digest", "rand_core"] }
+sha2 = "0.11.0"
+rand = "0.10.2"
