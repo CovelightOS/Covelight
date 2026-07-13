@@ -1,0 +1,13 @@
+[package]
+name = "sign"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "sign"
+path = "src/main.rs"
+
+[dependencies]
+covelight-crypto = { path = "../covelight-crypto" }
+hex = "0.4"
