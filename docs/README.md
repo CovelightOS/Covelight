@@ -62,3 +62,6 @@ Distilled, dated, committed notes from external research (NotebookLM etc). See [
 1. **Stubs are contracts, not placeholders.** A 🟡 stub states what the doc will cover and which task owns it; the owning task's acceptance includes replacing the stub. Don't write content into a stub outside its task.
 2. **Link, don't duplicate.** ARCHITECTURE.md owns the design narrative; docs here go deeper on one topic and link back. If the same fact lives in two files, one of them is wrong already or will be soon.
 3. **Honest labeling applies here too** (CLAUDE.md #7): any doc making safety claims distinguishes policy-based (Tier 1) from structural (Tier 2/OS) protection, every time.
+
+<!-- CI PROOF: deliberately broken link, removed in the next commit -->
+See [does not exist](devices/this-file-does-not-exist.md) for detail.
