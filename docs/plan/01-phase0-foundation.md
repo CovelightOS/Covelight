@@ -5,17 +5,25 @@
 
 ## Tasks
 
-### [ ] T0.1 — Repo skeleton [CC]
+### [x] T0.1 — Repo skeleton [CC]
 `docs/` is already in place and authoritative — nothing to move. This task creates the **source** directories only: `/shell /activities /app /companion /os /syncd /devices /tools`, each with a stub README stating what lives there and which tier it serves. Tier labels: shared / tier1 / tier2 / meta / **cross-tier** (`/devices` gets cross-tier — it covers both Tier 1's vendor-skin device-matrix and Tier 2's porting/device-database work). Add a root `.gitignore` for Godot 4 + Rust + Android + Tauri build artifacts.
 
 **`CLAUDE.md` stays at the repo root** — do not move it into `/docs` or anywhere else; Claude Code loads it from root at session start.
 
 **Acceptance:**
-- [ ] Source-dir layout matches CLAUDE.md exactly (or CLAUDE.md updated in same PR)
-- [ ] Every new directory README names its tier (shared / tier1 / tier2 / meta / cross-tier)
-- [ ] `docs/README.md`'s internal links resolve; `CLAUDE.md`'s Repository layout section matches the real `docs/` tree — fix either in this PR if they diverge
-- [ ] `.gitignore` present and covers Godot, Rust, Android, Tauri artifacts
-- [ ] `CLAUDE.md` unmoved, still at repo root
+- [x] Source-dir layout matches CLAUDE.md exactly (or CLAUDE.md updated in same PR)
+- [x] Every new directory README names its tier (shared / tier1 / tier2 / meta / cross-tier)
+- [x] `docs/README.md`'s internal links resolve; `CLAUDE.md`'s Repository layout section matches the real `docs/` tree — fix either in this PR if they diverge
+- [x] `.gitignore` present and covers Godot, Rust, Android, Tauri artifacts
+- [x] `CLAUDE.md` unmoved, still at repo root
+
+**Note:** original instructions for this task also mentioned moving
+`data/devices/*.yml`, `data/soc.yml`, `data/oem-policy.yml`, and
+`tools/score.py` into `/devices`. None of these files exist anywhere in
+the repo's history — `docs/devices/device-database.md` only *designs* them.
+That data work belongs to Phase 6 (`docs/plan/04-phase3-to-6-skeletons.md`)
+and lands there with real, sourced values. `/devices` ships empty (stub
+README only) in this task.
 
 ### [ ] T0.2 — CI scaffold [CC]
 GitHub Actions: markdown lint + link check on all docs; placeholder jobs (matrix-ready) for godot-export, android-build, rust-test — each currently a no-op that succeeds, so later phases fill in real steps without re-plumbing.
