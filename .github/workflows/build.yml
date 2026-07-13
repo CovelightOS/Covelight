@@ -6,16 +6,56 @@ on:
   pull_request:
 
 jobs:
-  # Placeholder until T1.1 (docs/plan/02-phase1-shell.md): headless Godot 4
-  # export check for /shell. Real job will need a Godot version pin (matrix
-  # candidate once multiple export targets exist) and an actions/cache for
-  # the Godot export templates.
+  # T1.1 (docs/plan/02-phase1-shell.md): headless Linux export of /shell.
+  # Fails the build if the project doesn't export cleanly. A version/export
+  # matrix can follow once more than one export target exists.
   godot-export:
     runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: 4.7-stable
+      GODOT_TEMPLATES_DIR: 4.7.stable
     steps:
       - uses: actions/checkout@v4
-      - name: No-op placeholder
-        run: echo "godot-export placeholder — nothing to build yet, filled in by T1.1"
+
+      - name: Cache Godot editor + export templates
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot-editor
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-linux
+
+      - name: Download Godot editor
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot-editor
+          curl -fL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot-editor
+
+      - name: Download export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}
+          curl -fL -o /tmp/templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          unzip -q /tmp/templates.tpz -d /tmp/templates_extracted
+          # Official .tpz archives nest everything under a top-level
+          # "templates/" folder; fall back to a flat layout defensively.
+          if [ -d /tmp/templates_extracted/templates ]; then
+            mv /tmp/templates_extracted/templates/* ~/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}/
+          else
+            mv /tmp/templates_extracted/* ~/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}/
+          fi
+
+      - name: Export Linux debug build
+        run: |
+          GODOT_BIN=$(find ~/godot-editor -maxdepth 1 -type f -iname "Godot*" | head -1)
+          chmod +x "$GODOT_BIN"
+          mkdir -p shell/build
+          "$GODOT_BIN" --headless --path shell --export-debug "Linux" build/shell.x86_64
+          test -f shell/build/shell.x86_64
 
   # Placeholder until T2.1 (docs/plan/03-phase2-kiosk.md): Gradle build of
   # /app. Real job will need a JDK setup step and, later, an Android API
