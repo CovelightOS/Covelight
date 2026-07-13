@@ -40,12 +40,12 @@ GitHub Actions: markdown lint + link check on all docs; placeholder jobs (matrix
 
 **Awaiting security review before T1.4 begins**, per this task's own blocking note.
 
-### [ ] T0.4 — Signing tool [CC, security] (depends: T0.3)
+### [x] T0.4 — Signing tool [CC, security] (depends: T0.3)
 `/tools/sign`: Rust CLI — `sign <file>`, `verify <file>`, `keygen`. This is the first code in the shared `covelight-crypto` crate that the shell's GDExtension (T1.4) and later `syncd` will both consume — one implementation of Ed25519 usage across the project.
 **Acceptance:**
-- [ ] keygen/sign/verify round-trip test in CI
-- [ ] Tampered-file test fails verification
-- [ ] Crate structure allows reuse (`covelight-crypto` lib + thin CLI)
+- [x] keygen/sign/verify round-trip test in CI — `tools/sign/tests/cli.rs`, exercises the real binary
+- [x] Tampered-file test fails verification — plus wrong-key and malformed-sidecar-file cases (no panic), all in CI via `rust-test`
+- [x] Crate structure allows reuse (`covelight-crypto` lib + thin CLI) — Cargo workspace, `sign` depends on `covelight-crypto` by path
 
 ### [ ] T0.5 — Contribution docs [CC]
 `CONTRIBUTING.md`: how to pick a task from `/docs/plan`, PR conventions, the `security` and `honest-labeling` labels, code of conduct, "you don't need to be a game dev" framing with the contributor lanes from the README.

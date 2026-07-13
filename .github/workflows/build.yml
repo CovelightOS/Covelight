@@ -27,13 +27,22 @@ jobs:
       - name: No-op placeholder
         run: echo "android-build placeholder — nothing to build yet, filled in by T2.1"
 
-  # Placeholder until T0.4 (docs/plan/01-phase0-foundation.md): cargo test
-  # for the covelight-crypto crate + sign CLI in /tools. Later phases add
-  # syncd (Phase 4) to the same job; a Rust toolchain matrix can follow once
-  # more than one crate exists.
+  # T0.4 (docs/plan/01-phase0-foundation.md): covelight-crypto + the sign CLI
+  # in /tools. Phase 4 adds syncd to this same workspace/job; a Rust
+  # toolchain matrix can follow once more than one crate needs one.
   rust-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: No-op placeholder
-        run: echo "rust-test placeholder — nothing to build yet, filled in by T0.4"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: cargo test
+        working-directory: tools
+        run: cargo test --workspace
+      - name: cargo fmt --check
+        working-directory: tools
+        run: cargo fmt --check
+      - name: cargo clippy
+        working-directory: tools
+        run: cargo clippy --workspace --all-targets -- -D warnings
