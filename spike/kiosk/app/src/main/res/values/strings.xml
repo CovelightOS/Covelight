@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App label is system metadata (task switcher, Settings > Apps), never
+         rendered to the child inside the kiosk itself — not a CLAUDE.md #1
+         violation. There is no child-reachable UI in this spike at all. -->
+    <string name="app_name">Covelight Kiosk Spike</string>
+</resources>

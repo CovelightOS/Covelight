@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Device Owner grants full policy power regardless of what's declared here in
+  current Android versions, but the receiver still requires this resource to
+  exist. Declared broadly for documentation purposes.
+-->
+<device-admin xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-policies>
+        <limit-password />
+        <disable-camera />
+        <disable-keyguard-features />
+        <force-lock />
+    </uses-policies>
+</device-admin>
