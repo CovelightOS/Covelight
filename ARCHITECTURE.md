@@ -48,7 +48,7 @@ The child device's networking is policy-disabled, so content never arrives over 
 
 The complete design as originally specified, unchanged in substance:
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  Learning activities (signed .pck bundles)  │   ← identical to Tier 1
 ├─────────────────────────────────────────────┤

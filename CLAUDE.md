@@ -38,7 +38,7 @@ The child-facing layer (Godot shell + signed PCK activities) is identical on bot
 
 ## Repository layout
 
-```
+```text
 /shell        — Godot 4 shell + activity SDK (shared, both tiers)
 /activities   — first-party learning activities (Godot → signed PCKs)
 /app          — Tier 1: Android kiosk wrapper (Device Owner, lock-task)

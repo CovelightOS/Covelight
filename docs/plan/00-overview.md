@@ -22,7 +22,7 @@ Each task line starts with a status: `[ ]` todo · `[~]` in progress · `[x]` do
 
 ## Phase map & critical path
 
-```
+```text
 Phase 0  Foundation           → repo, CI, signing design          (docs: 01)
 Phase 1  Shared platform      → Godot shell, SDK, activities      (docs: 02)  ← CRITICAL PATH
 Phase 2  Tier 1 kiosk         → Android wrapper, Companion setup  (docs: 03)  ← FIRST RELEASE
