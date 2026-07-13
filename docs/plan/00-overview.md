@@ -22,15 +22,17 @@ Each task line starts with a status: `[ ]` todo · `[~]` in progress · `[x]` do
 
 ## Phase map & critical path
 
-```
+```text
 Phase 0  Foundation           → repo, CI, signing design          (docs: 01)
 Phase 1  Shared platform      → Godot shell, SDK, activities      (docs: 02)  ← CRITICAL PATH
 Phase 2  Tier 1 kiosk         → Android wrapper, Companion setup  (docs: 03)  ← FIRST RELEASE
 Phase 3  Tier 1 hardening     → device matrix, F-Droid            (docs: 04)
-Phase 4  Tier 2 OS track      → syncd, protocol, pmOS image       (docs: 05)
-Phase 5  Tier 2 hardware      → Pi Zero gadget, OnePlus 6         (docs: 06)
-Phase 6  Device ecosystem     → database, checker, probe, Halium  (docs: 07)
+Phase 4  Tier 2 OS track      → syncd, protocol, pmOS image       (docs: 04)
+Phase 5  Tier 2 hardware      → Pi Zero gadget, OnePlus 6         (docs: 04)
+Phase 6  Device ecosystem     → database, checker, probe, Halium  (docs: 04)
 ```
+
+Phases 3–6 all live in one file, `docs/plan/04-phase3-to-6-skeletons.md` — hence the repeated "docs: 04" above.
 
 Phases 0–2 are specced task-by-task. Phases 3–6 are deliberately skeletal: they get their full task breakdown when their phase begins, so the plan reflects what we've learned instead of guesses made months earlier. **Do not pre-build Phase 4+ tasks while Phase 1–2 tasks are open** — the critical path is a child using Covelight, not architectural completeness.
 

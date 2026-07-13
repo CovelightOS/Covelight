@@ -1,0 +1,127 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # T1.1 (docs/plan/02-phase1-shell.md): headless Linux export of /shell.
+  # Fails the build if the project doesn't export cleanly. A version/export
+  # matrix can follow once more than one export target exists.
+  godot-export:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: 4.7-stable
+      GODOT_TEMPLATES_DIR: 4.7.stable
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot editor + export templates
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot-editor
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-linux
+
+      - name: Download Godot editor
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot-editor
+          curl -fL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot-editor
+
+      - name: Download export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}
+          curl -fL -o /tmp/templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          unzip -q /tmp/templates.tpz -d /tmp/templates_extracted
+          # Official .tpz archives nest everything under a top-level
+          # "templates/" folder; fall back to a flat layout defensively.
+          if [ -d /tmp/templates_extracted/templates ]; then
+            mv /tmp/templates_extracted/templates/* ~/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}/
+          else
+            mv /tmp/templates_extracted/* ~/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}/
+          fi
+
+      - name: Export Linux debug build
+        run: |
+          GODOT_BIN=$(find ~/godot-editor -maxdepth 1 -type f -iname "Godot*" | head -1)
+          chmod +x "$GODOT_BIN"
+          mkdir -p shell/build
+          "$GODOT_BIN" --headless --path shell --export-debug "Linux" build/shell.x86_64
+          test -f shell/build/shell.x86_64
+
+  # T1.2 (docs/plan/02-phase1-shell.md): GUT tests for the shell state
+  # machine, including crash containment. GUT itself, if a test script
+  # fails to parse, prints "Nothing was run" but still exits 0 -- the
+  # final grep guards against that silently going green.
+  godot-test:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: 4.7-stable
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot editor
+        id: godot-editor-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/godot-editor
+          key: godot-${{ env.GODOT_VERSION }}-linux-editor
+
+      - name: Download Godot editor
+        if: steps.godot-editor-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot-editor
+          curl -fL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot-editor
+
+      - name: Run GUT tests
+        run: |
+          set -euo pipefail
+          GODOT_BIN=$(find ~/godot-editor -maxdepth 1 -type f -iname "Godot*" | head -1)
+          chmod +x "$GODOT_BIN"
+          # class_name resolution needs one editor-mode pass over a fresh
+          # checkout (undocumented Godot behavior, found by testing this
+          # locally, not assumed) -- GUT's own error message points at
+          # this exact fix if skipped.
+          "$GODOT_BIN" --headless --path shell --import
+          "$GODOT_BIN" --headless --path shell -s addons/gut/gut_cmdln.gd -gexit | tee /tmp/gut-output.log
+          grep -q "All tests passed!" /tmp/gut-output.log
+
+  # Placeholder until T2.1 (docs/plan/03-phase2-kiosk.md): Gradle build of
+  # /app. Real job will need a JDK setup step and, later, an Android API
+  # level matrix for the device-test matrix (Phase 3).
+  android-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No-op placeholder
+        run: echo "android-build placeholder — nothing to build yet, filled in by T2.1"
+
+  # T0.4 (docs/plan/01-phase0-foundation.md): covelight-crypto + the sign CLI
+  # in /tools. Phase 4 adds syncd to this same workspace/job; a Rust
+  # toolchain matrix can follow once more than one crate needs one.
+  rust-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: cargo test
+        working-directory: tools
+        run: cargo test --workspace
+      - name: cargo fmt --check
+        working-directory: tools
+        run: cargo fmt --check
+      - name: cargo clippy
+        working-directory: tools
+        run: cargo clippy --workspace --all-targets -- -D warnings

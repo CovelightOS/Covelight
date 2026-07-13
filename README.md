@@ -56,7 +56,7 @@ Building in public. Current phase: **0**.
 - **Learning environment (shared):** Godot 4 — the shell and all activities; content ships as Ed25519-signed PCK bundles, verified before loading
 - **App tier:** Android Device Owner / lock-task kiosk; distributed as a direct APK and via F-Droid — no Play Store dependence; provisioned by a desktop helper (Tauri) so parents never touch a terminal
 - **OS tier:** postmarketOS (Alpine Linux), cage Wayland kiosk, dm-verity read-only root, radios compiled out; Rust sync daemon (`covelight-syncd`) over USB CDC-ACM with Ed25519 challenge-response; three-user privilege separation
-- **Companion (parent side):** one desktop app handles both app-tier provisioning and OS-tier content sync
+- **Companion (parent side):** one desktop app handles both app-tier provisioning and OS-tier content sync. A mobile Companion (React Native, Android) is planned for OS-tier sync without a computer — not yet built.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design and the reasoning behind it.
 
@@ -71,7 +71,8 @@ The two-tier model means most contributions help *every* child on *both* tiers:
 - **Desktop / TypeScript** — the companion & setup helper
 - **Security review** — threat modeling, protocol review, honest-labeling review of all public copy
 
-Open an issue or start a discussion to get involved.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to pick a task and PR
+conventions. Open an issue or start a discussion to get involved.
 
 ## License
 
