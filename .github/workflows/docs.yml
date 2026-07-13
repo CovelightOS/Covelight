@@ -1,0 +1,34 @@
+name: docs
+
+on:
+  push:
+    paths:
+      - "**/*.md"
+      - ".markdownlint.yaml"
+      - "tools/check_links.py"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "**/*.md"
+      - ".markdownlint.yaml"
+      - "tools/check_links.py"
+      - ".github/workflows/docs.yml"
+
+jobs:
+  markdown-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DavidAnson/markdownlint-cli2-action@v18
+        with:
+          globs: "**/*.md"
+
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Check internal doc links
+        run: python3 tools/check_links.py

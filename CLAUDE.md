@@ -38,17 +38,19 @@ The child-facing layer (Godot shell + signed PCK activities) is identical on bot
 
 ## Repository layout
 
-```
+```text
 /shell        — Godot 4 shell + activity SDK (shared, both tiers)
 /activities   — first-party learning activities (Godot → signed PCKs)
 /app          — Tier 1: Android kiosk wrapper (Device Owner, lock-task)
 /companion    — parent side: Tauri desktop (provisioning + OS sync) and RN mobile (OS sync)
 /os           — Tier 2: pmbootstrap configs, kernel configs, packaging, image build
 /syncd        — Tier 2: covelight-syncd (Rust)
-/devices      — device database: data/, tools/score.py, probe (see docs/device-database.md)
-/docs         — ARCHITECTURE.md, protocol spec, provisioning guide, porting guides
+/devices      — device database: data/, tools/score.py, probe (see docs/devices/device-database.md)
+/docs         — plan/, decisions/, design/, guides/, devices/, research/ (see docs/README.md for the map)
 /tools        — content signing, CI helpers
 ```
+
+**`CLAUDE.md` lives at the repo root and must stay there** — Claude Code loads it from root at session start. Never move it under `/docs`.
 
 (Keep this section current if the skeleton evolves.)
 

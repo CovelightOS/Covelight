@@ -8,7 +8,7 @@ Claude Code sessions read files on demand. A 2 KB distilled note costs almost no
 ## Format
 Every note carries a header:
 
-```
+```text
 # <Topic>
 **Researched:** YYYY-MM-DD · **Sources:** <what was actually consulted>
 **Confidence:** high / medium / low — and what would raise it

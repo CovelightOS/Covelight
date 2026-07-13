@@ -9,12 +9,12 @@
 
 ## Tasks
 
-### [ ] T1.1 — Godot project bootstrap [CC]
+### [x] T1.1 — Godot project bootstrap [CC]
 Godot 4.x project in `/shell`. **GL Compatibility renderer** (weak tablet GPUs are in scope — ARCHITECTURE §3/§4). Responsive viewport scaffolding covering ~16:9 phone portrait → 4:3 tablet landscape. CI: headless export check replaces the placeholder job.
 **Acceptance:**
-- [ ] Runs on desktop at three test resolutions/ratios (phone-portrait, phone-landscape, 4:3 tablet)
-- [ ] CI exports a Linux headless build successfully
-- [ ] Renderer setting documented with rationale
+- [x] Runs on desktop at three test resolutions/ratios (phone-portrait, phone-landscape, 4:3 tablet) — verified by rendering `scenes/main.tscn` at all three and confirming pixel colors at all 5 shape positions; see PR for the finding that headless mode can't be used for this check (no real window) and how it was actually verified
+- [x] CI exports a Linux headless build successfully — `godot-export` in `.github/workflows/build.yml`; `export_presets.cfg`'s "Linux" preset confirmed valid against the real installed engine locally (correctly progressed to a template-missing error, not a config error)
+- [x] Renderer setting documented with rationale — `shell/README.md`
 
 ### [ ] T1.2 — Shell state machine [CC]
 Boot → home → activity-running → return-to-home. Crash containment: an activity that errors returns to home calmly (no error text — constraint #1; a gentle animation + sound). No quit path in child-reachable UI.

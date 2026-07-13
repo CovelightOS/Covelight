@@ -35,7 +35,7 @@
 
 # Phase 6 — Device Ecosystem (skeleton)
 
-**Full breakdown when Covelight OS beta exists.** Scope committed now; foundations already in `/devices` (see `docs/device-database.md`):
+**Full breakdown when Covelight OS beta exists.** Scope committed now; foundations already in `/devices` (see `docs/devices/device-database.md`):
 
 - **Fill `oem-policy.yml` and `soc.yml` with verified, dated, sourced data** [human research + CC tooling]. Add the `unlock_mechanism: local | server | toggle` field — local-unlock devices are permanently safe to recommend; server-mediated ones can be revoked retroactively (Xiaomi 2025 precedent).
 - **Ingest adapters** for postmarketOS wiki + LineageOS device data (verify live formats before writing adapters; probe data always outranks scraped data).
