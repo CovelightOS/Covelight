@@ -71,7 +71,8 @@ The two-tier model means most contributions help *every* child on *both* tiers:
 - **Desktop / TypeScript** — the companion & setup helper
 - **Security review** — threat modeling, protocol review, honest-labeling review of all public copy
 
-Open an issue or start a discussion to get involved.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to pick a task and PR
+conventions. Open an issue or start a discussion to get involved.
 
 ## License
 

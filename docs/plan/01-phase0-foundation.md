@@ -47,10 +47,10 @@ GitHub Actions: markdown lint + link check on all docs; placeholder jobs (matrix
 - [x] Tampered-file test fails verification — plus wrong-key and malformed-sidecar-file cases (no panic), all in CI via `rust-test`
 - [x] Crate structure allows reuse (`covelight-crypto` lib + thin CLI) — Cargo workspace, `sign` depends on `covelight-crypto` by path
 
-### [ ] T0.5 — Contribution docs [CC]
+### [x] T0.5 — Contribution docs [CC]
 `CONTRIBUTING.md`: how to pick a task from `/docs/plan`, PR conventions, the `security` and `honest-labeling` labels, code of conduct, "you don't need to be a game dev" framing with the contributor lanes from the README.
 **Acceptance:**
-- [ ] A newcomer can go from clone to first-PR instructions without asking anything
+- [x] A newcomer can go from clone to first-PR instructions without asking anything — "Your first PR, start to finish" is a 6-step walkthrough at the top of `CONTRIBUTING.md`
 
 ### [ ] T0.6 — Claim namespaces [human]
 `covelight.org`, `covelight.dev`, GitHub org `covelight`. Transfer repo into the org.
