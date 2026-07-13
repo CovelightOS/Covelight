@@ -1,0 +1,26 @@
+# Prose docs, not code: line-length wrapping and compact table pipes aren't
+# bugs here. Multiple H1s are deliberate in docs/plan/04-phase3-to-6-skeletons.md
+# (one skeleton file, four phases, each its own top-level section).
+MD013: false
+MD025: false
+MD041: false
+MD060: false
+
+# House style across docs/plan/*.md: task headings are immediately followed
+# by a checklist, no blank line — dense on purpose, not a formatting bug.
+MD022: false
+MD032: false
+
+# "#1 textless kid UI · #2 ..." lines reference CLAUDE.md constraint
+# numbers inline, not headings — MD018 misreads the leading #.
+MD018: false
+
+# CLAUDE.md's inviolable-constraints list is deliberately numbered 1-14
+# continuously across three ### subsections (every other doc cross-references
+# these as absolute numbers, e.g. "constraint #12") — renumbering each
+# subsection's list back to 1 would break every citation in the repo.
+MD029: false
+
+# "<phone>", "<file>" etc are prose placeholders in questions/examples, not
+# real inline HTML.
+MD033: false
