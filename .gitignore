@@ -1,0 +1,46 @@
+# OS cruft
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Godot 4
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+*.translation
+mono_crash.*.json
+
+# Rust
+target/
+**/*.rs.bk
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+.gradle/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+build/
+
+# Tauri (Node + Rust + platform bundles)
+node_modules/
+dist/
+src-tauri/target/
+*.dSYM
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.iml

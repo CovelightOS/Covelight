@@ -31,7 +31,7 @@ Covelight needs **six** things, and actively wants four of the hard ones **absen
 
 ## Architecture
 
-```
+```text
 data/soc.yml           ── mainline support level per SoC (hand-curated, ~40 rows)
 data/oem-policy.yml    ── bootloader unlock policy per OEM (hand-curated, ~20 rows)
 data/devices/*.yml     ── one file per device, keyed by codename
@@ -157,7 +157,7 @@ It also means the two programs feed each other: a drawer-phone donation drive su
 
 The checker logs **only** an aggregate counter per codename (no identifiers, no IPs, nothing per-person — a Covelight service that tracks people would be self-defeating). That counter turns the porting backlog into a demand-ranked queue:
 
-```
+```text
 priority = demand.lookups
          × bootloader_unlockable
          × soc_mainline_score

@@ -5,25 +5,40 @@
 
 ## Tasks
 
-### [ ] T0.1 — Repo skeleton [CC]
-Create the directory layout from CLAUDE.md (`/shell /activities /app /companion /os /syncd /devices /docs /tools`), each with a stub README stating what lives there and which tier it serves. Move the existing docs (README, ARCHITECTURE, CLAUDE, device-database, plan/) into place.
-**Acceptance:**
-- [ ] Layout matches CLAUDE.md exactly (or CLAUDE.md updated in same PR)
-- [ ] Every directory README names its tier (shared / tier1 / tier2 / meta)
-- [ ] Root README links resolve
+### [x] T0.1 — Repo skeleton [CC]
+`docs/` is already in place and authoritative — nothing to move. This task creates the **source** directories only: `/shell /activities /app /companion /os /syncd /devices /tools`, each with a stub README stating what lives there and which tier it serves. Tier labels: shared / tier1 / tier2 / meta / **cross-tier** (`/devices` gets cross-tier — it covers both Tier 1's vendor-skin device-matrix and Tier 2's porting/device-database work). Add a root `.gitignore` for Godot 4 + Rust + Android + Tauri build artifacts.
 
-### [ ] T0.2 — CI scaffold [CC]
+**`CLAUDE.md` stays at the repo root** — do not move it into `/docs` or anywhere else; Claude Code loads it from root at session start.
+
+**Acceptance:**
+- [x] Source-dir layout matches CLAUDE.md exactly (or CLAUDE.md updated in same PR)
+- [x] Every new directory README names its tier (shared / tier1 / tier2 / meta / cross-tier)
+- [x] `docs/README.md`'s internal links resolve; `CLAUDE.md`'s Repository layout section matches the real `docs/` tree — fix either in this PR if they diverge
+- [x] `.gitignore` present and covers Godot, Rust, Android, Tauri artifacts
+- [x] `CLAUDE.md` unmoved, still at repo root
+
+**Note:** original instructions for this task also mentioned moving
+`data/devices/*.yml`, `data/soc.yml`, `data/oem-policy.yml`, and
+`tools/score.py` into `/devices`. None of these files exist anywhere in
+the repo's history — `docs/devices/device-database.md` only *designs* them.
+That data work belongs to Phase 6 (`docs/plan/04-phase3-to-6-skeletons.md`)
+and lands there with real, sourced values. `/devices` ships empty (stub
+README only) in this task.
+
+### [x] T0.2 — CI scaffold [CC]
 GitHub Actions: markdown lint + link check on all docs; placeholder jobs (matrix-ready) for godot-export, android-build, rust-test — each currently a no-op that succeeds, so later phases fill in real steps without re-plumbing.
 **Acceptance:**
-- [ ] CI runs on PR, green on the skeleton
-- [ ] Broken doc link fails CI (test with a deliberate break, then fix)
+- [x] CI runs on PR, green on the skeleton — [PR #1](https://github.com/CovelightOS/Covelight/pull/1)
+- [x] Broken doc link fails CI (test with a deliberate break, then fix) — proof in PR #1's description (break/fail/fix run links)
 
-### [ ] T0.3 — Content-signing design doc [CC, security]
-`docs/signing.md`: Ed25519 key hierarchy (project content key; per-parent pairing keys are Tier 2 §4 material, referenced not duplicated), PCK signing format (detached signature file vs embedded — decide and justify), verification flow in the shell, key storage for the project key, rotation/compromise procedure. **This blocks T1.4 and must be reviewed before it.**
+### [x] T0.3 — Content-signing design doc [CC, security]
+`docs/design/signing.md`: Ed25519 key hierarchy (project content key; per-parent pairing keys are Tier 2 §4 material, referenced not duplicated), PCK signing format (detached signature file vs embedded — decide and justify), verification flow in the shell, key storage for the project key, rotation/compromise procedure. **This blocks T1.4 and must be reviewed before it.**
 **Acceptance:**
-- [ ] A reader can implement signer and verifier from the doc alone
-- [ ] Compromise/rotation procedure exists
-- [ ] Explicitly states what is NOT protected (signing ≠ encryption; no DRM claims)
+- [x] A reader can implement signer and verifier from the doc alone — exact sidecar byte layout, hash/sign algorithm (Ed25519ph/RFC 8032), and fail-closed verification steps are fully specified
+- [x] Compromise/rotation procedure exists
+- [x] Explicitly states what is NOT protected (signing ≠ encryption; no DRM claims)
+
+**Awaiting security review before T1.4 begins**, per this task's own blocking note.
 
 ### [ ] T0.4 — Signing tool [CC, security] (depends: T0.3)
 `/tools/sign`: Rust CLI — `sign <file>`, `verify <file>`, `keygen`. This is the first code in the shared `covelight-crypto` crate that the shell's GDExtension (T1.4) and later `syncd` will both consume — one implementation of Ed25519 usage across the project.
@@ -47,5 +62,5 @@ USPTO/EUIPO search on "Covelight" (the dormant "Covelight Systems" entity was pr
 GPLv3 vs Apache-2.0, possibly per-component (copyleft OS/daemon, permissive SDK to maximize activity contributions is a defensible split). Record in `docs/decisions/`, then [CC] task to apply headers.
 
 ## Open questions
-- (design, blocking T0.3) Detached vs embedded PCK signatures — decide in T0.3, not before.
+- ~~(design, blocking T0.3) Detached vs embedded PCK signatures — decide in T0.3, not before.~~ Resolved: detached (`docs/design/signing.md`).
 - (human, non-blocking) GitHub org name fallback if `covelight` is taken.
