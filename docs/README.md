@@ -32,7 +32,7 @@ See [decisions/README.md](decisions/README.md) for the ADR format. An ADR is wri
 
 | File                                                                                 | Status       |
 | ------------------------------------------------------------------------------------ | ------------ |
-| [signing.md](design/signing.md) — Ed25519 content signing                            | 🟡 T0.3      |
+| [signing.md](design/signing.md) — Ed25519 content signing                            | ✅ (pending security review before T1.4) |
 | [activity-sdk.md](design/activity-sdk.md) — the activity contract                    | 🟡 T1.3      |
 | [kiosk-provisioning.md](design/kiosk-provisioning.md) — Device Owner design (Tier 1) | 🟡 T2.2/T2.4 |
 | [protocol.md](design/protocol.md) — USB sync protocol (Tier 2)                       | 🟡 Phase 4   |

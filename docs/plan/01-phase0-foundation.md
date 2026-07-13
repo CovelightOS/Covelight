@@ -31,12 +31,14 @@ GitHub Actions: markdown lint + link check on all docs; placeholder jobs (matrix
 - [x] CI runs on PR, green on the skeleton — [PR #1](https://github.com/CovelightOS/Covelight/pull/1)
 - [x] Broken doc link fails CI (test with a deliberate break, then fix) — proof in PR #1's description (break/fail/fix run links)
 
-### [ ] T0.3 — Content-signing design doc [CC, security]
-`docs/signing.md`: Ed25519 key hierarchy (project content key; per-parent pairing keys are Tier 2 §4 material, referenced not duplicated), PCK signing format (detached signature file vs embedded — decide and justify), verification flow in the shell, key storage for the project key, rotation/compromise procedure. **This blocks T1.4 and must be reviewed before it.**
+### [x] T0.3 — Content-signing design doc [CC, security]
+`docs/design/signing.md`: Ed25519 key hierarchy (project content key; per-parent pairing keys are Tier 2 §4 material, referenced not duplicated), PCK signing format (detached signature file vs embedded — decide and justify), verification flow in the shell, key storage for the project key, rotation/compromise procedure. **This blocks T1.4 and must be reviewed before it.**
 **Acceptance:**
-- [ ] A reader can implement signer and verifier from the doc alone
-- [ ] Compromise/rotation procedure exists
-- [ ] Explicitly states what is NOT protected (signing ≠ encryption; no DRM claims)
+- [x] A reader can implement signer and verifier from the doc alone — exact sidecar byte layout, hash/sign algorithm (Ed25519ph/RFC 8032), and fail-closed verification steps are fully specified
+- [x] Compromise/rotation procedure exists
+- [x] Explicitly states what is NOT protected (signing ≠ encryption; no DRM claims)
+
+**Awaiting security review before T1.4 begins**, per this task's own blocking note.
 
 ### [ ] T0.4 — Signing tool [CC, security] (depends: T0.3)
 `/tools/sign`: Rust CLI — `sign <file>`, `verify <file>`, `keygen`. This is the first code in the shared `covelight-crypto` crate that the shell's GDExtension (T1.4) and later `syncd` will both consume — one implementation of Ed25519 usage across the project.
@@ -60,5 +62,5 @@ USPTO/EUIPO search on "Covelight" (the dormant "Covelight Systems" entity was pr
 GPLv3 vs Apache-2.0, possibly per-component (copyleft OS/daemon, permissive SDK to maximize activity contributions is a defensible split). Record in `docs/decisions/`, then [CC] task to apply headers.
 
 ## Open questions
-- (design, blocking T0.3) Detached vs embedded PCK signatures — decide in T0.3, not before.
+- ~~(design, blocking T0.3) Detached vs embedded PCK signatures — decide in T0.3, not before.~~ Resolved: detached (`docs/design/signing.md`).
 - (human, non-blocking) GitHub org name fallback if `covelight` is taken.
