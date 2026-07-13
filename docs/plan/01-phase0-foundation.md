@@ -25,11 +25,11 @@ That data work belongs to Phase 6 (`docs/plan/04-phase3-to-6-skeletons.md`)
 and lands there with real, sourced values. `/devices` ships empty (stub
 README only) in this task.
 
-### [ ] T0.2 — CI scaffold [CC]
+### [x] T0.2 — CI scaffold [CC]
 GitHub Actions: markdown lint + link check on all docs; placeholder jobs (matrix-ready) for godot-export, android-build, rust-test — each currently a no-op that succeeds, so later phases fill in real steps without re-plumbing.
 **Acceptance:**
-- [ ] CI runs on PR, green on the skeleton
-- [ ] Broken doc link fails CI (test with a deliberate break, then fix)
+- [x] CI runs on PR, green on the skeleton — [PR #1](https://github.com/CovelightOS/Covelight/pull/1)
+- [x] Broken doc link fails CI (test with a deliberate break, then fix) — proof in PR #1's description (break/fail/fix run links)
 
 ### [ ] T0.3 — Content-signing design doc [CC, security]
 `docs/signing.md`: Ed25519 key hierarchy (project content key; per-parent pairing keys are Tier 2 §4 material, referenced not duplicated), PCK signing format (detached signature file vs embedded — decide and justify), verification flow in the shell, key storage for the project key, rotation/compromise procedure. **This blocks T1.4 and must be reviewed before it.**
