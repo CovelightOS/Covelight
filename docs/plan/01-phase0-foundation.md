@@ -6,11 +6,16 @@
 ## Tasks
 
 ### [ ] T0.1 — Repo skeleton [CC]
-Create the directory layout from CLAUDE.md (`/shell /activities /app /companion /os /syncd /devices /docs /tools`), each with a stub README stating what lives there and which tier it serves. Move the existing docs (README, ARCHITECTURE, CLAUDE, device-database, plan/) into place.
+`docs/` is already in place and authoritative — nothing to move. This task creates the **source** directories only: `/shell /activities /app /companion /os /syncd /devices /tools`, each with a stub README stating what lives there and which tier it serves. Tier labels: shared / tier1 / tier2 / meta / **cross-tier** (`/devices` gets cross-tier — it covers both Tier 1's vendor-skin device-matrix and Tier 2's porting/device-database work). Add a root `.gitignore` for Godot 4 + Rust + Android + Tauri build artifacts.
+
+**`CLAUDE.md` stays at the repo root** — do not move it into `/docs` or anywhere else; Claude Code loads it from root at session start.
+
 **Acceptance:**
-- [ ] Layout matches CLAUDE.md exactly (or CLAUDE.md updated in same PR)
-- [ ] Every directory README names its tier (shared / tier1 / tier2 / meta)
-- [ ] Root README links resolve
+- [ ] Source-dir layout matches CLAUDE.md exactly (or CLAUDE.md updated in same PR)
+- [ ] Every new directory README names its tier (shared / tier1 / tier2 / meta / cross-tier)
+- [ ] `docs/README.md`'s internal links resolve; `CLAUDE.md`'s Repository layout section matches the real `docs/` tree — fix either in this PR if they diverge
+- [ ] `.gitignore` present and covers Godot, Rust, Android, Tauri artifacts
+- [ ] `CLAUDE.md` unmoved, still at repo root
 
 ### [ ] T0.2 — CI scaffold [CC]
 GitHub Actions: markdown lint + link check on all docs; placeholder jobs (matrix-ready) for godot-export, android-build, rust-test — each currently a no-op that succeeds, so later phases fill in real steps without re-plumbing.
