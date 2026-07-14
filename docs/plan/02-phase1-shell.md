@@ -22,12 +22,12 @@ Boot → home → activity-running → return-to-home. Crash containment: an act
 - [x] State transitions covered by GUT (or equivalent) tests — real GUT 9.7.1 (built specifically for Godot 4.7.x), vendored in `shell/addons/gut/`; 4 tests, `shell/tests/test_shell_state_machine.gd`, all passing in CI (`godot-test`)
 - [x] Deliberately-crashing test activity → shell survives, returns home, no text shown — `scenes/activities/crashing_activity.tscn`; the test asserts the state sequence AND recursively walks the live tree for any text-capable node type
 
-### [ ] T1.3 — Activity SDK contract [CC] (write BEFORE T1.5–T1.7)
-`docs/activity-sdk.md` + `/shell/sdk/`: activity manifest (id, version, min-shell, declared layouts), entry-point interface, audio helper API (all speech/feedback via audio cues), input API (touch primitives sized for small hands), progress-storage API (local only, per constraint #5), lifecycle (start/pause/end). **Hard SDK rules:** textless; calm endings (no score screens, streaks, or "play again?" pressure loops); responsive layout declaration mandatory.
+### [x] T1.3 — Activity SDK contract [CC] (write BEFORE T1.5–T1.7)
+`docs/design/activity-sdk.md` + `/shell/sdk/`: activity manifest (id, version, min-shell, declared layouts), entry-point interface, audio helper API (all speech/feedback via audio cues), input API (touch primitives sized for small hands), progress-storage API (local only, per constraint #5), lifecycle (start/pause/end). **Hard SDK rules:** textless; calm endings (no score screens, streaks, or "play again?" pressure loops); responsive layout declaration mandatory. Orientation decided: portrait-only, always (`display/window/handheld/orientation` locked in both `shell/project.godot` and every activity project) — a deliberate scope-narrowing tradeoff, see the doc's §9.
 **Acceptance:**
-- [ ] A template activity (`/activities/_template`) builds and runs in the shell
-- [ ] SDK doc sufficient for an outsider to build an activity without reading shell source
-- [ ] Review checklist (`docs/activity-review.md`) encodes constraints #1 and #4 as concrete checks
+- [x] A template activity (`/activities/_template`) builds and runs in the shell — own GUT suite proves the full contract (manifest validity, lifecycle, no failure states, textlessness, touch-target/safe-margin sizing) against a real instantiated scene, run locally against Godot 4.7.stable (7/7 passing) and wired into CI (`godot-activity-template`); real signed-PCK loading through `Shell.start_activity()` is T1.4's job, not yet built, and this doesn't claim to exercise that path — see the doc's §10
+- [x] SDK doc sufficient for an outsider to build an activity without reading shell source — `docs/design/activity-sdk.md`
+- [x] Review checklist (`docs/guides/activity-review.md`) encodes constraints #1 and #4 as concrete checks, backed by `tools/lint_activity.sh` (static) and `shell/sdk/text_audit.gd` (runtime), both verified against real hits and real clean output
 
 ### [ ] T1.4 — PCK loading + signature verification [CC, security] (depends: T0.3, T0.4)
 GDExtension in Rust wrapping `covelight-crypto`: verify Ed25519 signature per `docs/signing.md` **before** `load_resource_pack`. Unsigned/tampered PCKs are rejected silently from the child's perspective (logged for parents).

@@ -12,3 +12,13 @@ class_name LayoutConstants
 ## (roughly Android's own edge-gesture exclusion ballpark), i.e. comfortably
 ## wider than a resting thumb pad, not just a cosmetic gap.
 const SAFE_MARGIN: float = 120.0
+
+## Minimum side length (project units, same 1080-wide base as SAFE_MARGIN)
+## for any interactive element in an activity -- docs/design/activity-sdk.md's
+## input API. Deliberately larger than adult-hand accessibility minimums
+## (WCAG 2.2 AAA ~44px, Android Material 48dp -- both land around 0.3in
+## physical): pre-literate children have coarser motor control than either
+## guideline assumes. ~0.4in physical at the same density SAFE_MARGIN was
+## sized against -- a design estimate, not a measured one; T1.5's "hand it
+## to an actual small child" check is the real validation.
+const MIN_TOUCH_TARGET_SIZE: float = 160.0

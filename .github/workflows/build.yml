@@ -96,6 +96,70 @@ jobs:
           "$GODOT_BIN" --headless --path shell -s addons/gut/gut_cmdln.gd -gexit | tee /tmp/gut-output.log
           grep -q "All tests passed!" /tmp/gut-output.log
 
+  # T1.3 (docs/plan/02-phase1-shell.md): the activity SDK contract's
+  # executable companion, /activities/_template. Own Godot project (not
+  # /shell), so its own import + export-pack + GUT run, mirroring
+  # godot-export/godot-test above. This is T1.3's acceptance evidence that
+  # "a template activity builds and runs" stays true on every push, not
+  # just at review time -- template rot would otherwise be silent until
+  # someone tries to copy it.
+  godot-activity-template:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: 4.7-stable
+      GODOT_TEMPLATES_DIR: 4.7.stable
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot editor + export templates
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot-editor
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-linux
+
+      - name: Download Godot editor
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot-editor
+          curl -fL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot-editor
+
+      - name: Download export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}
+          curl -fL -o /tmp/templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          unzip -q /tmp/templates.tpz -d /tmp/templates_extracted
+          if [ -d /tmp/templates_extracted/templates ]; then
+            mv /tmp/templates_extracted/templates/* ~/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}/
+          else
+            mv /tmp/templates_extracted/* ~/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}/
+          fi
+
+      - name: Lint (static text/network scan)
+        run: tools/lint_activity.sh activities/_template
+
+      - name: Import + export pack
+        run: |
+          GODOT_BIN=$(find ~/godot-editor -maxdepth 1 -type f -iname "Godot*" | head -1)
+          chmod +x "$GODOT_BIN"
+          "$GODOT_BIN" --headless --path activities/_template --import
+          mkdir -p activities/_template/build
+          "$GODOT_BIN" --headless --path activities/_template --export-pack "Linux" build/activity.pck
+          test -f activities/_template/build/activity.pck
+
+      - name: Run GUT tests
+        run: |
+          set -euo pipefail
+          GODOT_BIN=$(find ~/godot-editor -maxdepth 1 -type f -iname "Godot*" | head -1)
+          "$GODOT_BIN" --headless --path activities/_template -s addons/gut/gut_cmdln.gd -gexit | tee /tmp/gut-template-output.log
+          grep -q "All tests passed!" /tmp/gut-template-output.log
+
   # Placeholder until T2.1 (docs/plan/03-phase2-kiosk.md): Gradle build of
   # /app. Real job will need a JDK setup step and, later, an Android API
   # level matrix for the device-test matrix (Phase 3).

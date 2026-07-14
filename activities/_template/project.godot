@@ -10,9 +10,9 @@ config_version=5
 
 [application]
 
-config/name="Covelight Shell"
+config/name="Covelight Activity Template"
 config/version="0.1.0"
-run/main_scene="res://scenes/shell.tscn"
+run/main_scene="res://activity.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [editor_plugins]
@@ -21,6 +21,9 @@ enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
 [display]
 
+; Mirrors shell/project.godot exactly -- see docs/design/activity-sdk.md
+; §2.1. This project's own settings are a local-preview convenience only;
+; none of this is read when the shell loads your exported .pck at runtime.
 window/size/viewport_width=1080
 window/size/viewport_height=2340
 window/stretch/mode="canvas_items"

@@ -66,23 +66,10 @@ func test_crashing_activity_is_contained() -> void:
 	assert_eq(shell.state, Shell.State.HOME,
 		"shell recovered to HOME after the crash, unassisted")
 
-	assert_false(_tree_has_any_text_node(shell), "no Label/RichTextLabel/Button anywhere -- constraint #1, even mid-recovery")
+	assert_true(TextAudit.find_text_nodes(shell).is_empty(), "no text-capable node anywhere -- constraint #1, even mid-recovery")
 
 	# The crash itself is expected and deliberate -- this is the proof that
 	# it actually happened, and marks it handled so GUT's error tracker
 	# doesn't ALSO fail this test for an error the test intentionally caused.
 	assert_engine_error("this_method_does_not_exist",
 		"the deliberate crash actually fired, proving containment isn't a no-op")
-
-## Recursively checks for any node type that could render text to the
-## child. Constraint #1 is "no text, ever" -- this makes that a checkable
-## fact about the live tree, not just an assumption about the code.
-func _tree_has_any_text_node(node: Node) -> bool:
-	if node is Label or node is RichTextLabel or node is Button \
-		or node is LineEdit or node is TextEdit or node is OptionButton \
-		or node is AcceptDialog:
-		return true
-	for child in node.get_children():
-		if _tree_has_any_text_node(child):
-			return true
-	return false

@@ -2,16 +2,15 @@
 
 The Covelight Shell — the Godot 4 application children actually see: boot →
 home → activity → home, textless, fullscreen, sound-driven. Also hosts the
-activity SDK (`sdk/`) that learning activities build against, landing in
-T1.3.
+activity SDK (`sdk/`) that learning activities build against.
 
 Identical on both tiers; nothing here is tier-specific.
 
 **Tier:** shared
 
-**Status:** T1.1 (project bootstrap + responsive scaffolding) and T1.2
-(shell state machine + crash containment) done. See
-`docs/plan/02-phase1-shell.md` (Phase 1, critical path) for the rest.
+**Status:** T1.1 (project bootstrap + responsive scaffolding), T1.2 (shell
+state machine + crash containment), and T1.3 (activity SDK contract) done.
+See `docs/plan/02-phase1-shell.md` (Phase 1, critical path) for the rest.
 
 ## Renderer: GL Compatibility
 
@@ -67,8 +66,15 @@ coordinates, so it reflows automatically as `expand` reveals more or less
 canvas. `scenes/home.tscn` is the proof: four corner shapes and one
 centered shape, anchored to their respective corners/center, holding
 correct margins and relative position at all three ratios (verified in
-T1.1's PR). T1.3's SDK will carry this same anchor discipline into the
-activity contract.
+T1.1's PR). T1.3's SDK carries this same anchor discipline into the
+activity contract (`docs/design/activity-sdk.md`).
+
+**Orientation:** `window/handheld/orientation` is locked to `"portrait"` —
+a T1.3 decision every activity is built against (`docs/design/
+activity-sdk.md` §9): the shell, and everything it loads, only ever
+presents a portrait-shaped canvas, regardless of physical device
+orientation. `config/version` (currently `0.1.0`) is the shell's own
+version, compared against an activity manifest's `min_shell_version`.
 
 ## Safe-margin convention
 
@@ -120,16 +126,18 @@ exception to the caller — the caller's code after `add_child()` keeps
 running normally (see `scenes/activities/crashing_activity.gd`'s comment
 and T1.2's PR for the probe that confirmed this).
 
-### The activity contract (provisional)
+### The activity contract
 
-`scripts/activity_base.gd` (`class_name ActivityBase`, extends `Control`)
-is the minimal signal pair the shell depends on today: `report_ready()`
-once loaded and able to take input, `report_finished()` when done. T1.3
-formalizes the full manifest and lifecycle (start/pause/end); this
-contract is deliberately narrow so T1.4's real signed-PCK loading can
-instantiate a real activity scene through the exact same
+`sdk/activity_base.gd` (`class_name ActivityBase`, extends `Control`) is
+the full T1.3 lifecycle contract activities extend: `report_ready()` once
+loaded and able to take input, `report_finished()` when done, plus
+optional `_on_activity_paused()`/`_on_activity_resumed()` hooks. The
+signal pair (`activity_ready`/`activity_finished`) is unchanged from T1.2
+on purpose, so T1.4's real signed-PCK loading can instantiate a real
+activity scene through the exact same
 `Shell.start_activity(activity_scene: PackedScene)` entry point, with no
-rework to the shell itself.
+rework to the shell itself. Full contract, manifest format, and the rest
+of the SDK surface: `docs/design/activity-sdk.md`.
 
 - `scenes/activities/stub_activity.tscn` — reports ready immediately, runs
   ~1.5s, reports finished. Proves the normal end-to-end path.
@@ -149,10 +157,18 @@ rework to the shell itself.
 - `scenes/transition_overlay.tscn` + `scripts/transition_overlay.gd` — the
   fade + placeholder-tone transition, explicitly replaceable by T1.7.
 - `scenes/activities/` — the stub and crashing test activities above.
-- `scripts/activity_base.gd`, `scripts/layout_constants.gd` — the
-  provisional activity contract and the safe-margin constant.
+- `sdk/` — the T1.3 activity SDK: `activity_base.gd` (lifecycle contract),
+  `activity_manifest.gd`, `audio_cue.gd`, `touch_target.gd`,
+  `draggable.gd`, `activity_progress.gd`, `layout_constants.gd`
+  (safe-margin + minimum touch-target constants), `text_audit.gd` (the
+  shared textless-check reused by both the shell's own tests and any
+  activity's). Full contract: `docs/design/activity-sdk.md`. Symlinked
+  into every activity project as `addons/covelight_sdk` — see that doc's
+  §2 for why.
 - `addons/gut/` — vendored GUT 9.7.1 (MIT), built specifically for Godot
-  4.7.x. `tests/` holds the actual test scripts.
+  4.7.x. `tests/` holds the actual test scripts. Also symlinked into every
+  activity project as `addons/gut`, so an activity can run its own GUT
+  suite the same way the shell does.
 - `export_presets.cfg` — the `Linux` export preset CI exports against.
   Deliberately tracked, not gitignored (a generic Godot `.gitignore`
   template excludes this file by default; it's overridden at the repo
