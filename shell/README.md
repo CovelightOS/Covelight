@@ -9,8 +9,11 @@ Identical on both tiers; nothing here is tier-specific.
 **Tier:** shared
 
 **Status:** T1.1 (project bootstrap + responsive scaffolding), T1.2 (shell
-state machine + crash containment), and T1.3 (activity SDK contract) done.
-See `docs/plan/02-phase1-shell.md` (Phase 1, critical path) for the rest.
+state machine + crash containment), T1.3 (activity SDK contract), and T1.4
+(signed PCK verification) done. T1.5 (home screen)'s engineering is done;
+awaiting the human half of its `[CC+human]` acceptance (hand it to an
+actual small child) before it's checked off. See
+`docs/plan/02-phase1-shell.md` (Phase 1, critical path) for the rest.
 
 ## Renderer: GL Compatibility
 
@@ -151,9 +154,14 @@ of the SDK surface: `docs/design/activity-sdk.md`.
   editor plugin.
 - `scenes/shell.tscn` + `scripts/shell.gd` — the state machine, the
   project's main scene.
-- `scenes/home.tscn` + `scripts/home.gd` — placeholder home screen (taps
-  anywhere to start the stub activity). T1.5 replaces this with the real
-  textless activity chooser.
+- `scenes/home.tscn` + `scripts/home.gd` — T1.5's real textless activity
+  chooser: one `HomeTile` per entry in `home.gd`'s `ACTIVITIES` list
+  (currently just the T1.2 stub — there's no real installed-content
+  discovery yet, that's T1.6+), laid out in a grid inset by
+  `LayoutConstants.SAFE_MARGIN`, sorted by id (never by recency —
+  CLAUDE.md #4). `scenes/home_tile.tscn` + `scripts/home_tile.gd` — a
+  single tile: tap launches, tap-and-hold previews with a soft pulse
+  (`TouchTarget`'s `tapped`/`held`/`released`, reused as-is from the SDK).
 - `scenes/transition_overlay.tscn` + `scripts/transition_overlay.gd` — the
   fade + placeholder-tone transition, explicitly replaceable by T1.7.
 - `scenes/activities/` — the stub and crashing test activities above.

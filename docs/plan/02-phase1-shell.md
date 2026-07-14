@@ -36,12 +36,13 @@ GDExtension in Rust wrapping `covelight-crypto`: verify Ed25519 signature per `d
 - [x] No debug bypass flag exists in any build configuration (constraint #3) — verified by design: `covelight_crypto::TRUSTED_KEY_BYTES` ships empty (no real project key exists yet — a governance decision, not this task's), so `PckVerifier::verify_pck` (the only method `PckLoader`/`shell.gd` ever calls in production) currently rejects everything, correctly fail-closed; the test-only `verify_pck_with_key` sibling method is never reachable from production code and performs the same real Ed25519 check against an explicit key rather than a weaker one — documented in the crate's own doc comments
 - [x] Same crate consumed here and by `/tools/sign` — no second Ed25519 implementation — `shell/rust/pck_verify` depends on `covelight-crypto` by relative path; also added `sig_path_for()` and `trusted_keys()` to `covelight-crypto` itself and deduplicated `/tools/sign`'s own copy of the sidecar-path convention into it
 
-### [ ] T1.5 — Home screen [CC+human]
-Textless activity chooser: large icon tiles, audio preview on tap-hold, launch on tap. Lighthouse/harbor visual identity. Human check: hand it to an actual small child if possible; watch where they get stuck.
+### [ ] T1.5 — Home screen [CC+human] — CC portion done, awaiting human verification
+Textless activity chooser: large icon tiles, audio preview on tap-hold, launch on tap. Lighthouse/harbor visual identity. Human check: hand it to an actual small child if possible; watch where they get stuck. **Not checked off — the human half of [CC+human] hasn't happened yet; this box is CC's own honesty marker, not a claim of full completion.**
 **Acceptance:**
-- [ ] Zero rendered text
-- [ ] Usable at all three T1.1 test ratios
-- [ ] Every interactive element ≥ the SDK's minimum touch-target size
+- [x] Zero rendered text — `shell/tests/test_home.gd`'s `test_no_text_capable_nodes`, `TextAudit.find_text_nodes()` against the real instantiated scene
+- [x] Usable at all three T1.1 test ratios — real (non-headless) window screenshots taken at all three resolutions during this task's own verification; layout numerically confirmed resolution-independent (`SafeArea` offsets, tile `custom_minimum_size`, both project-unit values under `canvas_items`/`expand`), not just eyeballed
+- [x] Every interactive element ≥ the SDK's minimum touch-target size — tiles are 320×320 project units (double `LayoutConstants.MIN_TOUCH_TARGET_SIZE`, "large icon tiles" per this task's own wording), asserted directly in `test_home.gd`
+- [ ] **Human: hand to an actual small child, watch where they get stuck.** This is the acceptance criterion CC cannot verify — everything else on this list is real and automated, but usability for the actual user isn't establishable from a desk.
 
 ### [ ] T1.6 — First three activities [CC+human] (depends: T1.3)
 Built against the SDK, each exercising a different SDK surface: (1) animal sounds — tap/audio; (2) shape sorter — drag/drop; (3) color mixing — multi-touch/feedback. Each passes the T1.3 review checklist. These are the reference examples contributors copy, so code clarity outranks cleverness.
