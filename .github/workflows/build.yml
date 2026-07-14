@@ -155,15 +155,21 @@ jobs:
           "$GODOT_BIN" --headless --path shell -s addons/gut/gut_cmdln.gd -gexit | tee /tmp/gut-output.log
           grep -q "All tests passed!" /tmp/gut-output.log
 
-  # T1.3 (docs/plan/02-phase1-shell.md): the activity SDK contract's
-  # executable companion, /activities/_template. Own Godot project (not
-  # /shell), so its own import + export-pack + GUT run, mirroring
-  # godot-export/godot-test above. This is T1.3's acceptance evidence that
-  # "a template activity builds and runs" stays true on every push, not
-  # just at review time -- template rot would otherwise be silent until
-  # someone tries to copy it.
-  godot-activity-template:
+  # T1.3 + T1.6 (docs/plan/02-phase1-shell.md): each activity project is its
+  # own Godot project (not /shell), so each gets its own lint + import +
+  # export-pack + GUT run, mirroring godot-export/godot-test above. The
+  # matrix covers the SDK template (T1.3 -- template rot would otherwise be
+  # silent until someone copies it) and T1.6's three first activities, the
+  # reference examples every contributor copies. Verifying + loading the
+  # *signed* pcks in the shell is godot-test's job (test_real_click loads a
+  # committed content pck end-to-end); this job proves each activity's own
+  # source builds and passes its own suite.
+  godot-activity:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        activity: [_template, animal_sounds, shape_sorter, color_mixing]
     env:
       GODOT_VERSION: 4.7-stable
       GODOT_TEMPLATES_DIR: 4.7.stable
@@ -201,23 +207,23 @@ jobs:
           fi
 
       - name: Lint (static text/network scan)
-        run: tools/lint_activity.sh activities/_template
+        run: tools/lint_activity.sh activities/${{ matrix.activity }}
 
       - name: Import + export pack
         run: |
           GODOT_BIN=$(find ~/godot-editor -maxdepth 1 -type f -iname "Godot*" | head -1)
           chmod +x "$GODOT_BIN"
-          "$GODOT_BIN" --headless --path activities/_template --import
-          mkdir -p activities/_template/build
-          "$GODOT_BIN" --headless --path activities/_template --export-pack "Linux" build/activity.pck
-          test -f activities/_template/build/activity.pck
+          "$GODOT_BIN" --headless --path activities/${{ matrix.activity }} --import
+          mkdir -p activities/${{ matrix.activity }}/build
+          "$GODOT_BIN" --headless --path activities/${{ matrix.activity }} --export-pack "Linux" build/activity.pck
+          test -f activities/${{ matrix.activity }}/build/activity.pck
 
       - name: Run GUT tests
         run: |
           set -euo pipefail
           GODOT_BIN=$(find ~/godot-editor -maxdepth 1 -type f -iname "Godot*" | head -1)
-          "$GODOT_BIN" --headless --path activities/_template -s addons/gut/gut_cmdln.gd -gexit | tee /tmp/gut-template-output.log
-          grep -q "All tests passed!" /tmp/gut-template-output.log
+          "$GODOT_BIN" --headless --path activities/${{ matrix.activity }} -s addons/gut/gut_cmdln.gd -gexit | tee /tmp/gut-activity-output.log
+          grep -q "All tests passed!" /tmp/gut-activity-output.log
 
   # Placeholder until T2.1 (docs/plan/03-phase2-kiosk.md): Gradle build of
   # /app. Real job will need a JDK setup step and, later, an Android API

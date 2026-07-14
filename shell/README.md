@@ -8,11 +8,14 @@ Identical on both tiers; nothing here is tier-specific.
 
 **Tier:** shared
 
-**Status:** T1.1 (project bootstrap + responsive scaffolding), T1.2 (shell
-state machine + crash containment), T1.3 (activity SDK contract), and T1.4
-(signed PCK verification) done. T1.5 (home screen)'s engineering is done;
-awaiting the human half of its `[CC+human]` acceptance (hand it to an
-actual small child) before it's checked off. See
+**Status:** T1.1 (bootstrap + responsive scaffolding), T1.2 (state machine
++ crash containment), T1.3 (activity SDK contract), and T1.4 (signed PCK
+verification) done. T1.5 (home screen) and T1.6 (first three signed
+activities, loaded live via the full verify-then-load pipeline) are
+engineering-complete and awaiting the human half of their `[CC+human]`
+acceptance (a real small child). The three activities live in
+`/activities/{animal_sounds,shape_sorter,color_mixing}`; their signed
+`.pck`+`.sig` are committed under `content/`. See
 `docs/plan/02-phase1-shell.md` (Phase 1, critical path) for the rest.
 
 ## Renderer: GL Compatibility
@@ -189,6 +192,10 @@ of the SDK surface: `docs/design/activity-sdk.md`.
 - `scripts/pck_loader.gd` — verify-then-load gate (`class_name PckLoader`);
   `scripts/shell.gd`'s `start_activity_from_pck()` is the entry point that
   uses it.
+- `content/` — T1.6's signed activity bundles: `<id>.pck` + `<id>.pck.sig`
+  per activity, built from `/activities/*` and signed locally with the
+  project key (`docs/design/signing.md`). Committed (signing is local, CI
+  only verifies); the home screen loads them by path through `PckLoader`.
 - `export_presets.cfg` — the `Linux` export preset CI exports against.
   Deliberately tracked, not gitignored (a generic Godot `.gitignore`
   template excludes this file by default; it's overridden at the repo

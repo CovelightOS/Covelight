@@ -22,6 +22,12 @@ target/
 # platform-specific compiled binary, never committed -- see shell/README.md)
 shell/addons/covelight_pck_verify/bin/
 
+# Project signing keys. The PRIVATE key (.key) must NEVER be committed
+# (docs/design/signing.md); public keys live embedded in
+# covelight_crypto::TRUSTED_KEY_BYTES, not here. This whole directory is
+# generated locally and kept offline by a maintainer.
+.keys/
+
 # Android
 *.apk
 *.aab

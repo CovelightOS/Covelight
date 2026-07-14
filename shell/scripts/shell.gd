@@ -53,8 +53,8 @@ func _enter_home() -> void:
 	home.activity_requested.connect(_on_activity_requested)
 	_home_container.add_child(home)
 
-func _on_activity_requested(activity_scene: PackedScene) -> void:
-	start_activity(activity_scene)
+func _on_activity_requested(pck_path: String) -> void:
+	start_activity_from_pck(pck_path)
 
 ## T1.4: the entry point for a real signed activity, as opposed to a
 ## pre-known in-project PackedScene. Verifies pck_path (docs/design/

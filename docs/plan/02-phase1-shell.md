@@ -44,12 +44,17 @@ Textless activity chooser: large icon tiles, audio preview on tap-hold, launch o
 - [x] Every interactive element ≥ the SDK's minimum touch-target size — tiles are 320×320 project units (double `LayoutConstants.MIN_TOUCH_TARGET_SIZE`, "large icon tiles" per this task's own wording), asserted directly in `test_home.gd`
 - [ ] **Human: hand to an actual small child, watch where they get stuck.** This is the acceptance criterion CC cannot verify — everything else on this list is real and automated, but usability for the actual user isn't establishable from a desk.
 
-### [ ] T1.6 — First three activities [CC+human] (depends: T1.3)
-Built against the SDK, each exercising a different SDK surface: (1) animal sounds — tap/audio; (2) shape sorter — drag/drop; (3) color mixing — multi-touch/feedback. Each passes the T1.3 review checklist. These are the reference examples contributors copy, so code clarity outranks cleverness.
+### [ ] T1.6 — First three activities [CC+human] (depends: T1.3) — CC portion done, awaiting human verification
+Built against the SDK, each exercising a different SDK surface: (1) animal sounds — tap/audio; (2) shape sorter — drag/drop; (3) color mixing — multi-touch/feedback. Each passes the T1.3 review checklist. These are the reference examples contributors copy, so code clarity outranks cleverness. **Not checked off — the human half of [CC+human] (a real child, watch, don't guide) hasn't happened; this box is CC's honesty marker.**
+
+Established the project content-signing key here (the governance decision T1.4 deferred): keypair generated, public key embedded in `covelight_crypto::TRUSTED_KEY_BYTES`, private key custodied offline by the maintainer (gitignored `.keys/`, never committed). This is what makes the signed-PCK pipeline actually verify.
+
+One SDK gap found and reported, not worked around (`docs/design/activity-sdk.md` §12): the SDK is duplicated into every exported PCK (activity's `res://addons/covelight_sdk/` copy vs the shell's `res://sdk/`), so PCK-loaded activity nodes are a distinct class-identity from the shell's SDK classes. Functionally harmless (activities run; the shell drives them by signal name, verified end-to-end); the clean path-alignment fix is deliberately deferred. Also fixed a real template bug found here: `manifest.cfg` wasn't in the PCK (missing from `include_filter`) — fixed in the template and all three activities.
 **Acceptance:**
-- [ ] Each ships as a signed PCK loaded by the shell (full pipeline exercised end-to-end)
-- [ ] Each passes `docs/activity-review.md`
-- [ ] No failure states: wrong answers get gentle redirection, never negative feedback
+- [x] Each ships as a signed PCK loaded by the shell (full pipeline exercised end-to-end) — signed `.pck`+`.sig` under `shell/content/`, verified against the real project key and loaded live: `shell/tests/test_shell_state_machine.gd`'s `test_real_click_on_home_tile_launches_activity` drives a real tap → verify → load → run, and it was confirmed visually in a real window (screenshot of animal_sounds loaded via a real home-tile click)
+- [x] Each passes `docs/guides/activity-review.md` — `tools/lint_activity.sh` clean on all three, each activity's own GUT suite (8–9 tests) asserts textlessness (`TextAudit`), audio-first, no failure states, calm endings, min touch-target size, and safe margins; all three green locally against Godot 4.7.stable and wired into CI (`godot-activity` matrix)
+- [x] No failure states: wrong answers get gentle redirection, never negative feedback — every activity: a wrong drop drifts home / a wrong tap is impossible / any color is valid, each with a soft neutral sound, asserted in tests (`test_wrong_drop_drifts_back_with_no_penalty`, `test_no_wrong_answer_no_early_finish`, etc.)
+- [ ] **Human: a real child, watch, don't guide.** The one acceptance CC cannot do from a desk.
 
 ### [ ] T1.7 — Audio system [CC]
 Central audio bus: cue library, per-activity audio helper backing, ducking rules, master-volume persistence. Every shell interaction has an audio response (sound-driven UI is a core requirement, not polish).

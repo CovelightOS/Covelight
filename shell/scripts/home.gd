@@ -1,30 +1,42 @@
 extends Control
 
-## T1.5: the real textless activity chooser, replacing T1.2's placeholder
-## (tap-anywhere-to-start-the-stub). One HomeTile per available activity,
-## laid out in a grid inset by LayoutConstants.SAFE_MARGIN on every side.
-## Zero rendered text anywhere (constraint #1) -- every tile communicates
-## through shape, color, and sound alone.
+## T1.5 home screen, wired in T1.6 to launch real signed activities. One
+## HomeTile per available activity, laid out in a grid inset by
+## LayoutConstants.SAFE_MARGIN on every side. Zero rendered text anywhere
+## (constraint #1) -- every tile communicates through shape, color, and
+## sound alone.
 
-signal activity_requested(activity_scene: PackedScene)
+## Emitted with the .pck path of the tapped activity. The shell verifies
+## its signature and loads it (Shell.start_activity_from_pck) -- the home
+## screen never loads or trusts content itself, it only points at it.
+signal activity_requested(pck_path: String)
 
-## The activity list is data, not a filesystem scan: there is no real
-## installed-content directory or discovery mechanism yet (that arrives
-## with T1.6's first real signed activities, and whatever later task
-## teaches the shell to enumerate installed .pck/manifest pairs via
-## PckLoader). Today the only real activity-shaped scene in the project is
-## the T1.2 stub, so that's the only tile. Adding a second real activity
-## later means adding a second entry here, nothing structural changes.
+## The activity list is still data, not a filesystem scan: there's no
+## installed-content discovery mechanism yet (a later task teaches the
+## shell to enumerate whatever .pck/.sig pairs are actually present).
+## T1.6's three activities are hard-listed here by path; each ships as a
+## signed .pck under res://content/ (built + signed from /activities/* --
+## see docs/plan/02-phase1-shell.md T1.6). Adding an activity later is one
+## entry here plus its signed pck.
 ##
-## Sorted by "id" at display time (below), not left in declaration order
-## and never by recency/last-played/popularity -- CLAUDE.md #4: nothing
-## about *how tiles are ordered* should manufacture a pull toward one
-## activity over another.
+## Sorted by "id" at display time (below), never by recency/last-played/
+## popularity -- CLAUDE.md #4: nothing about tile order should manufacture
+## a pull toward one activity over another.
 const ACTIVITIES: Array[Dictionary] = [
 	{
-		"id": "stub",
-		"scene": preload("res://scenes/activities/stub_activity.tscn"),
-		"beacon_color": Color(0.945, 0.706, 0.353),  # warm amber
+		"id": "animal_sounds",
+		"pck_path": "res://content/animal_sounds.pck",
+		"beacon_color": Color(0.906, 0.451, 0.271),  # warm orange
+	},
+	{
+		"id": "color_mixing",
+		"pck_path": "res://content/color_mixing.pck",
+		"beacon_color": Color(0.694, 0.475, 0.741),  # soft violet
+	},
+	{
+		"id": "shape_sorter",
+		"pck_path": "res://content/shape_sorter.pck",
+		"beacon_color": Color(0.361, 0.573, 0.741),  # calm blue
 	},
 ]
 
@@ -38,6 +50,6 @@ func _ready() -> void:
 	for entry in sorted:
 		var tile: HomeTile = HOME_TILE.instantiate()
 		tile.beacon_color = entry["beacon_color"]
-		var activity_scene: PackedScene = entry["scene"]
-		tile.launch_requested.connect(func(): activity_requested.emit(activity_scene))
+		var pck_path: String = entry["pck_path"]
+		tile.launch_requested.connect(func(): activity_requested.emit(pck_path))
 		_tile_grid.add_child(tile)

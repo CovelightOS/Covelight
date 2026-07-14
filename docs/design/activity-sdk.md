@@ -349,19 +349,42 @@ viewed portrait.
 
 ## 10. Building, exporting, signing
 
+The full pipeline is live as of T1.6 — the shell verifies an activity's
+Ed25519 signature and loads it (T1.4, `docs/design/signing.md`):
+
 ```sh
-godot --headless --path activities/<your_activity> --quit          # smoke: imports cleanly
-godot --headless --path activities/<your_activity> --export-pack "Linux" build/<id>.pck
+# 1. smoke-check + run your own tests (no signing needed for this)
+godot --headless --path activities/<your_activity> --quit
+godot --headless --path activities/<your_activity> -s addons/gut/gut_cmdln.gd -gexit
+
+# 2. export the .pck into the shell's content directory
+godot --headless --path activities/<your_activity> \
+    --export-pack "Linux" "$PWD/shell/content/<id>.pck"
+
+# 3. sign it with the project key (produces <id>.pck.sig alongside)
+tools/target/release/sign sign "$PWD/shell/content/<id>.pck" --key <your-key>.key
 ```
 
-Producing the `.pck` is as far as this document goes — signing it
-(`tools/sign`) and the shell actually verifying and loading a real signed
-PCK is T1.4's scope (`docs/design/signing.md`), a separate, security-labeled
-task, not yet built as of this writing. Until it lands, an activity is
-verified by running its own GUT suite (`/activities/_template/tests` is
-the worked example) against its own `activity.tscn` directly — proving the
-lifecycle contract, manifest validity, and textlessness without needing
-the production loading path to exist yet.
+Two things worth knowing:
+
+- **`manifest.cfg` must be in the PCK.** `export_presets.cfg`'s
+  `include_filter` lists it explicitly — a plain `.cfg` isn't a Godot
+  "resource", so `export_filter="all_resources"` alone leaves it out, and
+  the shell can't read `entry_scene` without it. The template's preset
+  already has this; keep it if you copy from the template. (This was a real
+  bug found in T1.6 — the template shipped without it in T1.3.)
+- **Signed `.pck` + `.sig` are committed to the repo**, under
+  `shell/content/`. Signing runs *locally* with the project private key,
+  never in CI (`docs/design/signing.md`) — so the built, signed artifacts
+  are checked in, and CI only ever verifies them. Honest caveat: that
+  means a committed `.pck` can go stale against its source if you edit the
+  activity and forget to re-export + re-sign. Your activity's own GUT suite
+  tests the *source*; re-export whenever the source changes.
+
+Only a maintainer holding the project signing key can complete step 3 for
+content the shell will actually load. Your activity is fully testable
+without it (step 1) — the signing step is the maintainer's publish action,
+not something every contributor needs set up.
 
 ## 11. Versioning
 
@@ -388,3 +411,24 @@ ships.
   estimates pending T1.5's real-child validation, not measured values.
 - Portrait-only (§9) is a one-way-feeling decision to revisit only with
   real weight behind it — every future activity is built against it.
+- **SDK is duplicated into every exported PCK (known gap, found in T1.6).**
+  An activity project carries the SDK at `res://addons/covelight_sdk/` (the
+  symlink), and `--export-pack` bundles that copy into the `.pck`. The
+  shell hosts its *own* SDK at `res://sdk/`. So when the shell loads an
+  activity PCK, that PCK's `TouchTarget`/`Draggable`/`ActivityBase`/… are a
+  second, distinct set of script classes from the shell's — same names,
+  different class objects. **This is functionally harmless today:** the
+  activity runs correctly (its own code references its own copies
+  consistently), and the shell drives activities by *signal name*
+  (`activity_ready`/`activity_finished`), never by an `is ActivityBase`
+  type check — verified end-to-end in T1.6, real click through verify →
+  load → run. The costs are (a) a few KB of duplicated SDK script per PCK,
+  and (b) an external `node is <SDKClass>` check against the *shell's*
+  classes returns false for PCK-loaded activity nodes (so don't write shell
+  code or tests that type-check loaded activities against SDK classes —
+  check behavior/signals instead). The clean fix — host the shell's SDK at
+  the same `res://addons/covelight_sdk/` path the activities use and
+  exclude the SDK from each PCK, so there's one shared copy — is a
+  deliberately-deferred refactor (it touches shell code from T1.1–T1.5 and
+  the documented `addons/covelight_sdk` convention); it is not needed for
+  activities to work.

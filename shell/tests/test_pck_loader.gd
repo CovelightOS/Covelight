@@ -48,10 +48,11 @@ func _run_sign(args: PackedStringArray) -> Array:
 
 ## Signs `pck_path` (a real OS path) with a freshly generated keypair and
 ## returns that keypair's public key as a hex string -- the caller passes
-## it to PckVerifier.verify_pck_with_key() as the explicit trust root,
-## since covelight-crypto's *compiled-in* trusted-keys table ships empty
-## until a real project key exists (see shell/rust/pck_verify/src/lib.rs's
-## own doc comment on why that method exists at all).
+## it to PckVerifier.verify_pck_with_key() as the explicit trust root. A
+## fresh throwaway key is used (not the real project key) so these tests
+## stay hermetic and never depend on the project's private key: they prove
+## the verification *mechanism*, against a key they control, independent of
+## which keys the shipped trusted table happens to hold.
 func _sign_with_fresh_key(pck_path: String) -> String:
 	var key_prefix := pck_path + ".signer"
 	var keygen := _run_sign(["keygen", "--out", key_prefix])
@@ -138,21 +139,22 @@ func test_tampered_pck_is_rejected() -> void:
 	assert_engine_error("signature verification failed",
 		"PckVerifier logs the tamper-detection reason")
 
-	# The default PckLoader (real PckVerifier.verify_pck) rejects this for
-	# a *different* reason -- the compiled-in trusted-keys table is empty,
-	# so it never even reaches signature math, matching the earlier
-	# missing-sidecar test's fail-closed-by-default point.
+	# The default PckLoader (real PckVerifier.verify_pck) rejects this for a
+	# *different* reason: this fixture was signed with a throwaway key, whose
+	# key_id isn't in the shipped trusted table, so it's rejected as "not
+	# trusted" before signature math even runs -- exactly the wall an
+	# attacker's own key hits.
 	var loader := PckLoader.new()
 	var result := loader.load_and_verify(pck_path)
 	assert_null(result, "PckLoader must not return a scene for a tampered pck")
 	assert_engine_error("is not trusted",
-		"the default (empty) trusted-keys table rejects even a well-formed signature")
+		"a pck signed by an untrusted key is rejected regardless of signature validity")
 
 func test_missing_sidecar_is_rejected_by_the_real_default_verifier() -> void:
-	# No override -- exercises the actual production PckVerifier.verify_pck,
-	# whose compiled-in trusted-keys table is empty by design, so this also
-	# happens to prove the fail-closed default: nothing verifies against it
-	# yet, for anyone, which is the deliberately safe starting state.
+	# No override -- exercises the actual production PckVerifier.verify_pck.
+	# A pck with no sidecar at all is rejected before any key or signature
+	# is even considered, so this holds regardless of what the trusted table
+	# contains: no signature, no load, full stop.
 	var pck_path := ProjectSettings.globalize_path(_work_dir.path_join("no_sidecar.pck"))
 	var f := FileAccess.open(pck_path, FileAccess.WRITE)
 	f.store_string("bytes with no .sig file next to them")

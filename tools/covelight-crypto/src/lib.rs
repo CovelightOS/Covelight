@@ -287,15 +287,23 @@ pub fn sig_path_for(path: &Path) -> PathBuf {
 /// Raw public-key bytes for every currently-trusted project signing key,
 /// embedded at compile time — no live key-server, no fetch, ever
 /// (CLAUDE.md #5/#11; docs/design/signing.md "Project key storage &
-/// access control"). **Empty until a real project key exists.** Generating
-/// that keypair and committing its public bytes here is a governance/
-/// process decision (who holds signing capability, how the private half is
-/// custodied) — explicitly out of scope for the code that verifies against
-/// this table. An empty table is not a bug: it means every `.pck` fails
-/// verification until a real key is added, which is the correct fail-closed
-/// behavior for "no debug bypass, ever" (CLAUDE.md #3) — there's no
-/// placeholder key here that could be mistaken for a real one.
-pub const TRUSTED_KEY_BYTES: &[[u8; PUBLIC_KEY_LEN]] = &[];
+/// access control").
+///
+/// The first entry is the **project content-signing key**, established in
+/// T1.6 to load the first three signed activities. Its private half is
+/// custodied offline by a maintainer and is *never* committed (the `.keys/`
+/// directory it's generated into is gitignored); signing runs locally, and
+/// CI only ever verifies with the public key below (docs/design/signing.md).
+/// key_id `272deb701ad924ec` — the first 8 bytes of SHA-256(these 32 bytes).
+///
+/// Rotating or adding a key is an append/replace here plus a rebuild of the
+/// shell's GDExtension (`shell/rust/build_gdextension.sh`) so the compiled
+/// trusted table matches — same procedure `docs/design/signing.md`
+/// "Rotation" describes.
+pub const TRUSTED_KEY_BYTES: &[[u8; PUBLIC_KEY_LEN]] = &[[
+    0xbe, 0xe6, 0xda, 0x35, 0x82, 0x30, 0x0b, 0x0a, 0xeb, 0x34, 0x96, 0xf7, 0xd9, 0x03, 0x73, 0xbf,
+    0xb6, 0x1f, 0x93, 0x00, 0xe0, 0x06, 0xea, 0xc4, 0x84, 0x1c, 0xd6, 0xea, 0xf0, 0x39, 0x0c, 0x10,
+]];
 
 /// [`TRUSTED_KEY_BYTES`], parsed. Malformed entries are skipped rather than
 /// panicking (this crate never panics on data, per the module doc) — in

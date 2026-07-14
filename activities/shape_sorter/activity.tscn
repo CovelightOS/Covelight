@@ -1,0 +1,139 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://activity.gd" id="1"]
+[ext_resource type="Script" path="res://addons/covelight_sdk/draggable.gd" id="2"]
+[ext_resource type="Script" path="res://addons/covelight_sdk/audio_cue.gd" id="3"]
+
+; Slots are Panels (a StyleBoxFlat gives them an outlined "hole" look, one
+; per pair colour, tinted in code by activity.gd). Shapes are Draggables
+; with a solid ColorRect fill. Both are pinned top-left (anchors_preset=0)
+; and positioned entirely from code (_layout) — dragging needs free
+; movement, which explicit `position` values keep simple. Scene positions
+; below are rough placeholders so the editor preview isn't all stacked at
+; the origin; _layout overrides them on load.
+
+[sub_resource type="StyleBoxFlat" id="1"]
+bg_color = Color(1, 1, 1, 0.15)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+border_color = Color(1, 1, 1, 0.6)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[node name="Activity" type="Control"]
+script = ExtResource("1")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.153, 0.196, 0.243, 1)
+
+[node name="ActivityAudio" type="AudioStreamPlayer" parent="."]
+script = ExtResource("3")
+
+[node name="SafeArea" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 120.0
+offset_top = 120.0
+offset_right = -120.0
+offset_bottom = -120.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Slot0" type="Panel" parent="SafeArea"]
+custom_minimum_size = Vector2(240, 240)
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 280.0
+offset_bottom = 280.0
+theme_override_styles/panel = SubResource("1")
+
+[node name="Slot1" type="Panel" parent="SafeArea"]
+custom_minimum_size = Vector2(240, 240)
+offset_left = 340.0
+offset_top = 40.0
+offset_right = 580.0
+offset_bottom = 280.0
+theme_override_styles/panel = SubResource("1")
+
+[node name="Slot2" type="Panel" parent="SafeArea"]
+custom_minimum_size = Vector2(240, 240)
+offset_left = 640.0
+offset_top = 40.0
+offset_right = 880.0
+offset_bottom = 280.0
+theme_override_styles/panel = SubResource("1")
+
+[node name="Shape0" type="Control" parent="SafeArea"]
+custom_minimum_size = Vector2(240, 240)
+offset_left = 40.0
+offset_top = 1500.0
+offset_right = 280.0
+offset_bottom = 1740.0
+script = ExtResource("2")
+
+[node name="Shape" type="ColorRect" parent="SafeArea/Shape0"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.5, 0.5, 0.5, 1)
+
+[node name="Shape1" type="Control" parent="SafeArea"]
+custom_minimum_size = Vector2(240, 240)
+offset_left = 340.0
+offset_top = 1500.0
+offset_right = 580.0
+offset_bottom = 1740.0
+script = ExtResource("2")
+
+[node name="Shape" type="ColorRect" parent="SafeArea/Shape1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.5, 0.5, 0.5, 1)
+
+[node name="Shape2" type="Control" parent="SafeArea"]
+custom_minimum_size = Vector2(240, 240)
+offset_left = 640.0
+offset_top = 1500.0
+offset_right = 880.0
+offset_bottom = 1740.0
+script = ExtResource("2")
+
+[node name="Shape" type="ColorRect" parent="SafeArea/Shape2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.5, 0.5, 0.5, 1)

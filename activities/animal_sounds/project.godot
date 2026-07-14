@@ -1,0 +1,36 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly, since the parameters
+; that go here are meant to be edited by the project settings dialog.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Covelight — Animal Sounds"
+config/version="0.1.0"
+run/main_scene="res://activity.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+
+[display]
+
+; Mirrors shell/project.godot exactly -- see docs/design/activity-sdk.md
+; §2.1. This project's own settings are a local-preview convenience only;
+; none of this is read when the shell loads your exported .pck at runtime.
+window/size/viewport_width=1080
+window/size/viewport_height=2340
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation="portrait"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

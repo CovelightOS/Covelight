@@ -1,0 +1,118 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://activity.gd" id="1"]
+[ext_resource type="Script" path="res://addons/covelight_sdk/draggable.gd" id="2"]
+[ext_resource type="Script" path="res://addons/covelight_sdk/audio_cue.gd" id="3"]
+
+; The Bowl is a Panel with a plain WHITE rounded StyleBoxFlat, so
+; activity.gd can tint it to any mix color via self_modulate (which
+; multiplies the white base, showing the true color). Drops are Draggables
+; with a solid ColorRect "Fill" child, colored in code from PRIMARIES.
+; Everything is positioned from code (_layout); scene positions are rough
+; placeholders so the editor preview isn't stacked at the origin.
+
+[sub_resource type="StyleBoxFlat" id="1"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 200
+corner_radius_top_right = 200
+corner_radius_bottom_right = 200
+corner_radius_bottom_left = 200
+
+[node name="Activity" type="Control"]
+script = ExtResource("1")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.153, 0.196, 0.243, 1)
+
+[node name="ActivityAudio" type="AudioStreamPlayer" parent="."]
+script = ExtResource("3")
+
+[node name="SafeArea" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 120.0
+offset_top = 120.0
+offset_right = -120.0
+offset_bottom = -120.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Bowl" type="Panel" parent="SafeArea"]
+custom_minimum_size = Vector2(400, 400)
+offset_left = 220.0
+offset_top = 300.0
+offset_right = 620.0
+offset_bottom = 700.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("1")
+
+[node name="Drop0" type="Control" parent="SafeArea"]
+custom_minimum_size = Vector2(220, 220)
+offset_left = 60.0
+offset_top = 1600.0
+offset_right = 280.0
+offset_bottom = 1820.0
+script = ExtResource("2")
+
+[node name="Fill" type="ColorRect" parent="SafeArea/Drop0"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.5, 0.5, 0.5, 1)
+
+[node name="Drop1" type="Control" parent="SafeArea"]
+custom_minimum_size = Vector2(220, 220)
+offset_left = 410.0
+offset_top = 1600.0
+offset_right = 630.0
+offset_bottom = 1820.0
+script = ExtResource("2")
+
+[node name="Fill" type="ColorRect" parent="SafeArea/Drop1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.5, 0.5, 0.5, 1)
+
+[node name="Drop2" type="Control" parent="SafeArea"]
+custom_minimum_size = Vector2(220, 220)
+offset_left = 760.0
+offset_top = 1600.0
+offset_right = 980.0
+offset_bottom = 1820.0
+script = ExtResource("2")
+
+[node name="Fill" type="ColorRect" parent="SafeArea/Drop2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.5, 0.5, 0.5, 1)

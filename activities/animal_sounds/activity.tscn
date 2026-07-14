@@ -1,0 +1,123 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://activity.gd" id="1"]
+[ext_resource type="Script" path="res://addons/covelight_sdk/touch_target.gd" id="2"]
+[ext_resource type="Script" path="res://addons/covelight_sdk/audio_cue.gd" id="3"]
+
+; Four animals as TouchTargets in a 2x2 grid, centred inside a safe-margin
+; inset. Each animal is a plain ColorRect placeholder (real animal art — a
+; Sprite2D or TextureRect — replaces the ColorRect later; the tap wiring
+; doesn't change). Every animal is the same size and shape so none draws
+; more pull than another (CLAUDE.md #4). ColorRect Shapes are mouse_filter
+; = 2 (IGNORE) so the tap passes through to the TouchTarget parent.
+
+[node name="Activity" type="Control"]
+script = ExtResource("1")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.153, 0.196, 0.243, 1)
+
+[node name="ActivityAudio" type="AudioStreamPlayer" parent="."]
+script = ExtResource("3")
+
+[node name="SafeArea" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 120.0
+offset_top = 120.0
+offset_right = -120.0
+offset_bottom = -120.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="SafeArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Grid" type="GridContainer" parent="SafeArea/CenterContainer"]
+layout_mode = 2
+theme_override_constants/h_separation = 80
+theme_override_constants/v_separation = 80
+columns = 2
+
+[node name="Fox" type="Control" parent="SafeArea/CenterContainer/Grid"]
+custom_minimum_size = Vector2(320, 320)
+layout_mode = 2
+script = ExtResource("2")
+
+[node name="Shape" type="ColorRect" parent="SafeArea/CenterContainer/Grid/Fox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.906, 0.451, 0.271, 1)
+
+[node name="Frog" type="Control" parent="SafeArea/CenterContainer/Grid"]
+custom_minimum_size = Vector2(320, 320)
+layout_mode = 2
+script = ExtResource("2")
+
+[node name="Shape" type="ColorRect" parent="SafeArea/CenterContainer/Grid/Frog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.365, 0.647, 0.443, 1)
+
+[node name="Bird" type="Control" parent="SafeArea/CenterContainer/Grid"]
+custom_minimum_size = Vector2(320, 320)
+layout_mode = 2
+script = ExtResource("2")
+
+[node name="Shape" type="ColorRect" parent="SafeArea/CenterContainer/Grid/Bird"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.361, 0.573, 0.741, 1)
+
+[node name="Cat" type="Control" parent="SafeArea/CenterContainer/Grid"]
+custom_minimum_size = Vector2(320, 320)
+layout_mode = 2
+script = ExtResource("2")
+
+[node name="Shape" type="ColorRect" parent="SafeArea/CenterContainer/Grid/Cat"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.694, 0.475, 0.741, 1)
