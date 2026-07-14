@@ -45,18 +45,25 @@ func _ready() -> void:
 	held.connect(_on_held)
 	released.connect(_on_released)
 
+## Immediate tap acknowledgment, played *before* launch_requested emits and
+## independent of whatever happens downstream -- T1.7: no silent taps
+## anywhere. Without this, a tap on a tile whose PCK fails signature
+## verification (Shell.start_activity_from_pck returns silently on a
+## rejected PCK, by design -- constraint #1, no error shown) would produce
+## no sound at all; this cue fires regardless of that outcome, same as a
+## real button click needs no confirmation that the thing behind it worked.
 func _on_tapped() -> void:
+	_audio.play_cue(CueLibrary.get_cue("ui_tap"))
 	launch_requested.emit()
 
-## Placeholder preview cue (ActivityAudio.play_placeholder_tone) -- there is
-## no real per-activity preview audio yet, because there is no real
-## installed-activity content yet (T1.6). A future SDK addition (a
-## preview-cue manifest field, or similar) is what lets a real activity
-## supply its own short preview sound without the home screen loading the
-## whole PCK just to hold-and-listen; noted here as an open seam, not
-## solved by this task.
+## Preview cue (CueLibrary's "ui_hold_preview") -- there is no real
+## per-activity preview audio yet, because there is no real installed-
+## activity content yet (T1.6). A future SDK addition (a preview-cue
+## manifest field, or similar) is what lets a real activity supply its own
+## short preview sound without the home screen loading the whole PCK just
+## to hold-and-listen; noted here as an open seam, not solved by this task.
 func _on_held() -> void:
-	_audio.play_placeholder_tone(440.0, 0.4)
+	_audio.play_cue(CueLibrary.get_cue("ui_hold_preview"))
 	_start_pulse()
 
 func _on_released() -> void:

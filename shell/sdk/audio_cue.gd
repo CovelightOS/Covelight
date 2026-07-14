@@ -14,11 +14,22 @@ class_name ActivityAudio
 ## that wants to communicate something to the child has exactly one tool
 ## here: a sound.
 
-## Placeholder output routing until T1.7 defines real buses (ducking,
-## per-activity vs. shell-chrome separation). "Master" is Godot's always-
-## present default bus, so this never fails for lack of a bus that doesn't
-## exist yet.
-const BUS_NAME := "Master"
+## T1.7's real bus: every ActivityAudio instance -- an activity's own
+## sounds and HomeTile's hold-to-preview alike -- routes to the "Content"
+## bus that shell/audio/audio_bus.gd (autoloaded as AudioBus, shell-only)
+## creates at boot and ducks while a shell-chrome cue plays. This is the
+## one file the SDK doc (docs/design/activity-sdk.md §5) promised T1.7
+## would change to retrofit the real bus onto every existing activity.
+##
+## Deliberately a string literal, not a reference to `AudioBus.CONTENT_BUS`:
+## this script is symlinked into every activity's own project too (§2 of
+## the SDK doc), where `/shell/audio/` doesn't exist and the AudioBus
+## autoload was never registered -- an activity previewed standalone
+## (`godot --path activities/<x>`) has no such global to resolve. Matches
+## "Content" by convention, kept in sync manually; if this ever drifts
+## from AudioBus.CONTENT_BUS, playback just falls back toward Master
+## un-ducked, not an error.
+const BUS_NAME := "Content"
 
 func _ready() -> void:
 	bus = BUS_NAME

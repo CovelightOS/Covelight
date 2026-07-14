@@ -15,6 +15,10 @@ config/version="0.1.0"
 run/main_scene="res://scenes/shell.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
+[autoload]
+
+AudioBus="*res://audio/audio_bus.gd"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/gut/plugin.cfg")

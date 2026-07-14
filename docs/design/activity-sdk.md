@@ -197,17 +197,23 @@ anything that reads as negative).
 
 `play_placeholder_tone(hz, seconds)` generates a short procedural sine
 tone — for prototyping your activity's *timing and structure* before real
-audio assets exist, the same role `transition_overlay.gd`'s placeholder
-tone plays for shell chrome. It never ships in a reviewed activity;
-placeholder cue sets are explicitly documented as replaceable (T1.7).
+audio assets exist. It never ships in a reviewed activity; the shell's
+own placeholder cue set (`shell/audio/cues/README.md`) is the parallel
+case for shell chrome, explicitly documented as replaceable (T1.7).
 
 There is no text, caption, or subtitle parameter anywhere on this API.
 Not discouraged — absent. An activity that wants to tell the child
 something has exactly one tool: a sound.
 
-`ActivityAudio` routes to Godot's default `"Master"` bus for now; T1.7
-adds the real central bus (ducking, cue library, volume persistence) by
-changing this one file, not by touching any activity.
+`ActivityAudio` routes to the shell's real `"Content"` bus (T1.7,
+`shell/audio/audio_bus.gd`) — ducked automatically whenever shell chrome
+plays a transition cue, so an activity gets that behavior for free without
+calling anything new. This is a string-literal match to `AudioBus.CONTENT_BUS`,
+not a code reference: `audio_cue.gd` is symlinked into every activity's own
+project (§2), where `/shell/audio/` and its autoload don't exist, so
+previewing an activity standalone (`godot --path activities/<x>`) still
+works — the bus name just doesn't resolve to anything there and playback
+falls back toward the engine's default bus, harmlessly.
 
 ## 6. Input API
 

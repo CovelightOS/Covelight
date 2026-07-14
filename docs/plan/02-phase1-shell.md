@@ -56,11 +56,15 @@ One SDK gap found and reported, not worked around (`docs/design/activity-sdk.md`
 - [x] No failure states: wrong answers get gentle redirection, never negative feedback — every activity: a wrong drop drifts home / a wrong tap is impossible / any color is valid, each with a soft neutral sound, asserted in tests (`test_wrong_drop_drifts_back_with_no_penalty`, `test_no_wrong_answer_no_early_finish`, etc.)
 - [ ] **Human: a real child, watch, don't guide.** The one acceptance CC cannot do from a desk.
 
-### [ ] T1.7 — Audio system [CC]
+### [x] T1.7 — Audio system [CC]
 Central audio bus: cue library, per-activity audio helper backing, ducking rules, master-volume persistence. Every shell interaction has an audio response (sound-driven UI is a core requirement, not polish).
+
+Built as an `AudioBus` autoload (`shell/audio/audio_bus.gd`) that creates two runtime buses at boot — `Chrome` (shell-level transition/UI cues) and `Content` (activity + home-tile audio, both routed to `Master`) — plus a `CueLibrary` (`shell/audio/cue_library.gd`) that looks cues up by name, real asset first, procedural placeholder tone as fallback. `ActivityAudio` (`shell/sdk/audio_cue.gd`) now routes to `Content` by changing one constant, exactly as `docs/design/activity-sdk.md` §5 said T1.7 would; `TransitionOverlay` plays distinct `transition_leave`/`transition_arrive` cues (was silent on `reveal()` before this task) and ducks `Content` around them; `HomeTile` gained an immediate `ui_tap` cue independent of what the tap goes on to trigger. That last one is a real bug found and fixed here: a tap on a tile whose PCK fails signature verification returned silently before this task (constraint #1's "no error shown" had the side effect of "no sound either") — the tap cue now fires regardless of the outcome. `docs/research/godot-audio.md` records the NotebookLM-queried AudioServer bus API this was built against, including why ducking is a deterministic bus-volume tween here rather than `AudioEffectCompressor` sidechaining.
 **Acceptance:**
-- [ ] All shell interactions produce audio feedback
-- [ ] Placeholder cue set documented as replaceable assets (real sound design is a contributor lane)
+- [x] All shell interactions produce audio feedback — `shell/tests/test_audio.gd`, real autoloaded `AudioBus`/`CueLibrary`, no mocks; covers bus creation/routing, ducking, volume persistence-to-disk, and the two shell-level surfaces that aren't an activity's own responsibility (`HomeTile` tap, `TransitionOverlay` cover/reveal); existing `test_home.gd`/`test_shell_state_machine.gd` still green (23/23 total), and all three T1.6 activities' own standalone GUT suites re-verified unaffected (e.g. `animal_sounds` 8/8)
+- [x] Placeholder cue set documented as replaceable assets (real sound design is a contributor lane) — `shell/audio/cues/README.md`: swap path is "drop a same-named `.ogg`/`.wav` in this directory," no code change; cue-name-to-trigger table kept in sync with `CueLibrary._PLACEHOLDER_TONES`
+
+Master-volume persistence (`AudioBus.set_master_volume()`/`get_master_volume()`, `user://settings/audio.cfg`) is the API surface only — no volume control exists anywhere in `/shell`'s child-reachable scenes; it's built for T2.3's parent menu to call, per this task's design notes.
 
 ### [ ] T1.8 — Desktop test harness [CC]
 `just run` / `just test` developer loop: launch shell with local activities, simulate the three form factors, run all tests. This is the contributor on-ramp — friction here is friction on requirement 3.
