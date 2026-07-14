@@ -47,6 +47,51 @@ func test_activity_finishing_returns_to_home() -> void:
 	assert_true(back_home, "state_changed fired settling back into HOME")
 	assert_eq(shell.state, Shell.State.HOME, "back home after the activity finished itself")
 
+## Regression test for a latent bug shipped in T1.2's shell.tscn and only
+## surfaced by real-device tapping during T1.5: ActivityContainer, an empty
+## full-screen Control layered on top of HomeContainer, had mouse_filter =
+## PASS. PASS still makes a control the picked target -- it only propagates
+## unhandled input to its own PARENT, never falls through to a sibling
+## beneath it -- so it silently ate every click meant for the home tiles,
+## and nothing launched. Every other test drives the shell by calling
+## start_activity()/emitting signals directly, so none of them ever routed
+## a real InputEvent through the viewport's GUI picking, which is the only
+## thing that exercises mouse_filter. This one does: a genuine synthetic
+## click at the tile's location must reach the tile and launch. Both
+## overlay containers are now mouse_filter = IGNORE (transparent to
+## picking; their live child still receives input normally).
+func test_real_click_on_home_tile_launches_activity() -> void:
+	await wait_for_signal(shell.state_changed, SETTLE_TIMEOUT)  # settle into HOME
+	assert_eq(shell.state, Shell.State.HOME)
+
+	var tile: Control = shell.find_child("HomeTile", true, false)
+	assert_not_null(tile, "home screen has a tile to tap")
+
+	# Canvas-space coords + in_local_coords=true: the position is already in
+	# the viewport's own space, so no window/stretch transform is applied
+	# (the shell has no real window under a headless test). This is the
+	# real GUI-picking path -- if any overlay intercepts the pick, tapped
+	# never fires and state never leaves HOME.
+	# start_activity() flips state to ACTIVITY_RUNNING synchronously, inside
+	# the tapped-signal chain, before its own first await -- so the release
+	# event that completes the tap leaves the shell already out of HOME by
+	# the time push_input returns. Assert "no longer HOME" rather than a
+	# specific target state: with the tiny 0.2s test watchdog the activity
+	# may already be racing on to RETURN_TO_HOME, which is irrelevant here.
+	# The only thing this test proves -- and the thing the bug broke -- is
+	# that the pick reached the tile at all.
+	var center: Vector2 = tile.get_global_rect().get_center()
+	for pressed in [true, false]:
+		var ev := InputEventMouseButton.new()
+		ev.button_index = MOUSE_BUTTON_LEFT
+		ev.pressed = pressed
+		ev.position = center
+		get_viewport().push_input(ev, true)
+		await get_tree().process_frame
+
+	assert_ne(shell.state, Shell.State.HOME,
+		"a real click on the tile left HOME -- the GUI pick reached the tile and launched")
+
 func test_crashing_activity_is_contained() -> void:
 	await wait_for_signal(shell.state_changed, SETTLE_TIMEOUT)  # HOME
 	assert_eq(shell.state, Shell.State.HOME)
