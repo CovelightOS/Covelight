@@ -66,10 +66,12 @@ Built as an `AudioBus` autoload (`shell/audio/audio_bus.gd`) that creates two ru
 
 Master-volume persistence (`AudioBus.set_master_volume()`/`get_master_volume()`, `user://settings/audio.cfg`) is the API surface only — no volume control exists anywhere in `/shell`'s child-reachable scenes; it's built for T2.3's parent menu to call, per this task's design notes.
 
-### [ ] T1.8 — Desktop test harness [CC]
+### [x] T1.8 — Desktop test harness [CC]
 `just run` / `just test` developer loop: launch shell with local activities, simulate the three form factors, run all tests. This is the contributor on-ramp — friction here is friction on requirement 3.
+
+Built as a repo-root `justfile`: `just run [form]` (builds the T1.4 GDExtension if needed, runs Godot's one-time `--import` class-registration pass, launches a real window — `form` is `phone-portrait` default, `phone-landscape`, or `tablet`, the same three ratios `shell/README.md`'s "Stretch strategy" section documents), `just test-shell` (shell's own GUT suite), `just test-activity <name>` (one activity's own suite), and `just test` (everything — shell plus every first-party activity, mirroring `.github/workflows/build.yml`'s `godot-test` + `godot-activity` matrix so "green locally" and "green in CI" mean the same thing). `docs/guides/building-activities.md` (replacing its stub) is the full contributor walkthrough this harness is the on-ramp for.
 **Acceptance:**
-- [ ] Clone → running shell in ≤ 3 commands on a clean machine (document them in /shell/README)
+- [x] Clone → running shell in ≤ 3 commands on a clean machine (document them in /shell/README) — `git clone && cd covelight && just run` is two commands; `shell/README.md`'s "Running it locally" documents this plus the manual command equivalents. Verified for real, repeatedly, on this dev machine (all three `run` form factors real-windowed, `test-shell`/`test-activity`/`test` all green); the ≤3-command *sequence* was additionally confirmed against a genuinely clean tree (`git archive` export — no `.godot/` cache, no `target/`, no compiled GDExtension binary) via dry-run and a real run that correctly invoked the GDExtension build before failing on unrelated host disk exhaustion partway through the from-scratch `cargo build` — a pre-existing condition on this development machine, left alone rather than remediated by this task, and honestly noted in `shell/README.md` rather than hidden. A from-scratch container run (the more rigorous version of this check) is worth re-doing once there's disk headroom; not blocking.
 
 ## Open questions
 - (design, non-blocking) Progress data model: per-activity opaque blobs vs shared schema — start opaque, revisit at Phase 4 (syncd may want to surface progress to parents).

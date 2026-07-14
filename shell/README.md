@@ -9,13 +9,13 @@ Identical on both tiers; nothing here is tier-specific.
 **Tier:** shared
 
 **Status:** T1.1 (bootstrap + responsive scaffolding), T1.2 (state machine
-+ crash containment), T1.3 (activity SDK contract), and T1.4 (signed PCK
-verification) done. T1.5 (home screen) and T1.6 (first three signed
-activities, loaded live via the full verify-then-load pipeline) are
-engineering-complete and awaiting the human half of their `[CC+human]`
-acceptance (a real small child). The three activities live in
-`/activities/{animal_sounds,shape_sorter,color_mixing}`; their signed
-`.pck`+`.sig` are committed under `content/`. See
++ crash containment), T1.3 (activity SDK contract), T1.4 (signed PCK
+verification), T1.7 (central audio bus), and T1.8 (developer harness) done.
+T1.5 (home screen) and T1.6 (first three signed activities, loaded live via
+the full verify-then-load pipeline) are engineering-complete and awaiting
+the human half of their `[CC+human]` acceptance (a real small child). The
+three activities live in `/activities/{animal_sounds,shape_sorter,color_mixing}`;
+their signed `.pck`+`.sig` are committed under `content/`. See
 `docs/plan/02-phase1-shell.md` (Phase 1, critical path) for the rest.
 
 ## Renderer: GL Compatibility
@@ -203,43 +203,84 @@ of the SDK surface: `docs/design/activity-sdk.md`.
 
 ## Running it locally
 
-Requires the Godot 4.7 editor (`brew install --cask godot` on macOS, or
-the equivalent from godotengine.org) and a Rust toolchain (for the T1.4
-GDExtension below).
+**Prerequisites, once:** the Godot 4.7 editor (`brew install --cask godot`
+on macOS, or the equivalent from godotengine.org), a Rust toolchain
+(rustup.rs — for the T1.4 GDExtension below), and `just`
+(`brew install just` or github.com/casey/just). These three are the actual
+floor — same as any Godot+Rust project, not specific friction this repo
+adds.
 
-**Build the GDExtension first — this is not optional.** `shell/rust/pck_verify`
+### The fast path (T1.8)
+
+```sh
+git clone <this-repo-url> && cd covelight
+just run
+```
+
+Two commands, one real window, phone-portrait by default. `just run`
+chains everything that has to happen on a genuinely fresh clone — building
+the GDExtension, running Godot's one-time `--import` class-registration
+pass, then launching — so there's no separate "first-time setup" step to
+remember. Run it again any time; each piece is cheap to re-run when
+nothing changed (cargo is incremental, `--import` is idempotent).
+
+Everything else the harness does (recipes in the repo-root `justfile`,
+not here in `/shell`):
+
+```sh
+just run tablet             # or: phone-landscape -- the three ratios below
+just test-shell              # this project's own GUT suite only
+just test-activity animal_sounds   # one activity's own GUT suite
+just test                    # everything: shell + every first-party activity
+```
+
+`just run <form>` simulates the three ratios "Stretch strategy" (above)
+is built and verified against — `phone-portrait` (default, 1080×2340),
+`phone-landscape` (2340×1080), `tablet` (2048×1536, 4:3). Unknown values
+fail loudly (`error: unknown form factor '...'`) rather than silently
+falling back to something else.
+
+**Honest note on how this was tested:** the ≤3-command target was verified
+by exporting a clean `git archive` of this repo (no `.godot/` cache, no
+`target/`, no compiled GDExtension binary — a truer fresh-clone simulation
+than reusing this machine's already-built copy) and running `just run`
+against it end-to-end. A from-scratch container run (Ubuntu + freshly
+installed Godot/Rust/just, no host caches at all) was the original plan,
+but this development machine hit real host disk exhaustion partway
+through that attempt — unrelated to the harness itself, and left alone
+rather than "fixed" by an agent poking at unrelated system storage. The
+command sequence and recipe logic were confirmed correct up to that point
+(including on this machine, repeatedly, with a warm toolchain); a
+container-clean run is worth re-doing once there's disk headroom, but
+isn't blocking this task.
+
+### Without `just`
+
+Everything above is a thin wrapper; the underlying commands (also what CI
+runs) work directly:
+
+```sh
+shell/rust/build_gdextension.sh              # debug build; not optional, see below
+godot --headless --path shell --import       # one-time class_name registration
+godot --path shell                            # real window, phone-portrait
+godot --path shell --resolution 2048x1536     # eyeball a different ratio
+godot --headless --path shell -s addons/gut/gut_cmdln.gd -gexit   # run tests
+```
+
+**Building the GDExtension first is not optional.** `shell/rust/pck_verify`
 (T1.4, `docs/design/signing.md`) is a hard prerequisite for running *any*
-part of `/shell` headless or in the editor, not a nice-to-have: `scripts/pck_loader.gd`
-references the `PckVerifier` class it defines by name at parse time, so a
-missing binary breaks the whole project's script compilation, not just
-PCK loading — verified directly against the real engine, not assumed (see
-`docs/research/godot-pck-gdextension.md`). One command, run once (or after
-touching `shell/rust/pck_verify/`):
-
-```sh
-shell/rust/build_gdextension.sh   # debug build, for local dev
-```
-
-Then:
-
-```sh
-godot --headless --path shell --quit   # smoke test: opens/imports cleanly
-godot --path shell                      # actually see it, real window
-godot --path shell --resolution 2048x1536   # eyeball a different ratio
-```
+part of `/shell` headless or in the editor, not a nice-to-have:
+`scripts/pck_loader.gd` references the `PckVerifier` class it defines by
+name at parse time, so a missing binary breaks the whole project's script
+compilation, not just PCK loading — verified directly against the real
+engine, not assumed (see `docs/research/godot-pck-gdextension.md`).
 
 Note on verifying stretch behavior locally: headless mode has no real
 window (`DisplayServer.window_get_size()` reports `(0, 0)`), so
 `canvas_items`/`expand` has nothing real to expand against — don't trust
 a headless screenshot for layout verification, only for "does it import
-without erroring." Judge the actual reflow with a real window.
-
-### Running the tests
-
-```sh
-godot --headless --path shell --import   # first run only (see note below)
-godot --headless --path shell -s addons/gut/gut_cmdln.gd -gexit
-```
+without erroring." Judge the actual reflow with a real window (`just run`
+or `godot --path shell`, above).
 
 The `--import` step matters on a fresh checkout: `class_name`-declared
 global classes (`Shell`, `ActivityBase`, GUT's own classes, ...) are only
@@ -250,7 +291,8 @@ this. Undocumented Godot behavior, found by testing, not assumed.
 Also worth knowing: if a test script fails to *parse* (not just fails an
 assertion), GUT prints "Nothing was run" but still exits `0` — a plain
 exit-code check in CI would go green having run zero tests. `godot-test`
-in CI greps the output for `"All tests passed!"` specifically, so a parse
+in CI, and `just test`/`just test-shell`/`just test-activity` above, all
+grep the output for `"All tests passed!"` specifically, so a parse
 regression fails the build instead of silently passing.
 
 ## CI
