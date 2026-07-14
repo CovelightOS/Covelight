@@ -18,6 +18,10 @@ mono_crash.*.json
 target/
 **/*.rs.bk
 
+# GDExtension build output (shell/rust/build_gdextension.sh copies here;
+# platform-specific compiled binary, never committed -- see shell/README.md)
+shell/addons/covelight_pck_verify/bin/
+
 # Android
 *.apk
 *.aab

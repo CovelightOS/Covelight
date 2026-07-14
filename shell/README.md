@@ -169,6 +169,18 @@ of the SDK surface: `docs/design/activity-sdk.md`.
   4.7.x. `tests/` holds the actual test scripts. Also symlinked into every
   activity project as `addons/gut`, so an activity can run its own GUT
   suite the same way the shell does.
+- `rust/pck_verify/` — the T1.4 GDExtension (`docs/design/signing.md`):
+  verifies a `.pck`'s Ed25519 signature, via `covelight-crypto`
+  (`/tools/covelight-crypto`), before `scripts/pck_loader.gd` ever calls
+  `ProjectSettings.load_resource_pack()`. `rust/build_gdextension.sh`
+  builds it and copies the platform binary into
+  `addons/covelight_pck_verify/bin/` (gitignored — a compiled artifact,
+  not source), which `addons/covelight_pck_verify/covelight_pck_verify.gdextension`
+  points at. See "Running it locally" below — building this is a hard
+  prerequisite, not optional.
+- `scripts/pck_loader.gd` — verify-then-load gate (`class_name PckLoader`);
+  `scripts/shell.gd`'s `start_activity_from_pck()` is the entry point that
+  uses it.
 - `export_presets.cfg` — the `Linux` export preset CI exports against.
   Deliberately tracked, not gitignored (a generic Godot `.gitignore`
   template excludes this file by default; it's overridden at the repo
@@ -177,7 +189,23 @@ of the SDK surface: `docs/design/activity-sdk.md`.
 ## Running it locally
 
 Requires the Godot 4.7 editor (`brew install --cask godot` on macOS, or
-the equivalent from godotengine.org).
+the equivalent from godotengine.org) and a Rust toolchain (for the T1.4
+GDExtension below).
+
+**Build the GDExtension first — this is not optional.** `shell/rust/pck_verify`
+(T1.4, `docs/design/signing.md`) is a hard prerequisite for running *any*
+part of `/shell` headless or in the editor, not a nice-to-have: `scripts/pck_loader.gd`
+references the `PckVerifier` class it defines by name at parse time, so a
+missing binary breaks the whole project's script compilation, not just
+PCK loading — verified directly against the real engine, not assumed (see
+`docs/research/godot-pck-gdextension.md`). One command, run once (or after
+touching `shell/rust/pck_verify/`):
+
+```sh
+shell/rust/build_gdextension.sh   # debug build, for local dev
+```
+
+Then:
 
 ```sh
 godot --headless --path shell --quit   # smoke test: opens/imports cleanly
@@ -212,11 +240,22 @@ regression fails the build instead of silently passing.
 
 ## CI
 
-- `godot-export` downloads the pinned Godot 4.7 Linux editor + export
-  templates (cached across runs — the templates package alone is ~1.2 GB,
-  cache-miss cost is real and expected on the first run after a version
-  bump), then runs a real `--export-debug "Linux"`. Fails the build if the
-  project doesn't export.
-- `godot-test` (separate cache — it only needs the editor, not the export
-  templates) runs the GUT suite headless, with the parse-failure guard
-  above.
+- `build-gdextension` compiles `shell/rust/pck_verify` and `tools/sign`
+  once (release profile) and uploads both as a shared artifact — every
+  other shell-touching job downloads it rather than recompiling, and
+  needs it to exist before running *any* Godot command against `/shell`,
+  same requirement as the local-dev note above.
+- `godot-export` (`needs: build-gdextension`) downloads the pinned Godot
+  4.7 Linux editor + export templates (cached across runs — the templates
+  package alone is ~1.2 GB, cache-miss cost is real and expected on the
+  first run after a version bump), then runs a real `--export-debug "Linux"`.
+  Fails the build if the project doesn't export.
+- `godot-test` (`needs: build-gdextension`; separate cache — it only needs
+  the editor, not the export templates) runs the GUT suite headless
+  (T1.2's shell-state-machine tests and T1.4's PCK-verification tests
+  together — same `tests/` directory, same run), with the parse-failure
+  guard above.
+- `rust-test-gdextension` runs `cargo test`/`fmt --check`/`clippy -D warnings`
+  against `shell/rust/pck_verify` directly — separate from `rust-test`
+  (which only covers the `/tools` workspace) since this crate lives
+  outside it, but the same conventions apply (CLAUDE.md).

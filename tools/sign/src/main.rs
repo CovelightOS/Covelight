@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use covelight_crypto::{sign_file, verify_file, Error, KeyPair, PublicKey, Sidecar};
+use covelight_crypto::{sig_path_for, sign_file, verify_file, Error, KeyPair, PublicKey, Sidecar};
 
 fn usage() -> String {
     "usage:\n  \
@@ -121,10 +121,4 @@ fn cmd_verify(args: &[String]) -> Result<(), String> {
     verify_file(&[public_key], path, &sidecar).map_err(|e| e.to_string())?;
     println!("OK: {file} verifies against {pubkey_path}");
     Ok(())
-}
-
-fn sig_path_for(path: &Path) -> PathBuf {
-    let mut s = path.as_os_str().to_os_string();
-    s.push(".sig");
-    PathBuf::from(s)
 }

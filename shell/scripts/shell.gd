@@ -56,6 +56,22 @@ func _enter_home() -> void:
 func _on_activity_requested(activity_scene: PackedScene) -> void:
 	start_activity(activity_scene)
 
+## T1.4: the entry point for a real signed activity, as opposed to a
+## pre-known in-project PackedScene. Verifies pck_path (docs/design/
+## signing.md, via PckLoader/PckVerifier) before anything else happens --
+## on failure this returns silently, exactly as if nothing was tapped
+## (constraint #1: no error text, no visible difference to the child; the
+## rejection is already logged for the parent by PckVerifier itself). On
+## success, hands the resulting scene to start_activity() unchanged, so
+## every other guarantee (crash containment, watchdog, state machine) is
+## the same code path as any other activity.
+func start_activity_from_pck(pck_path: String) -> void:
+	var loader := PckLoader.new()
+	var activity_scene := loader.load_and_verify(pck_path)
+	if activity_scene == null:
+		return
+	start_activity(activity_scene)
+
 ## Public entry point T1.5's real home screen (and tests) call. T1.4's
 ## real signed-PCK loading plugs in here too -- this signature doesn't
 ## care whether activity_scene came from a stub resource or a verified PCK.

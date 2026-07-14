@@ -6,16 +6,66 @@ on:
   pull_request:
 
 jobs:
+  # T1.4 (docs/plan/02-phase1-shell.md, security): builds the GDExtension
+  # (shell/rust/pck_verify, wraps covelight-crypto) and the sign CLI
+  # (tools/sign), shared by godot-export and godot-test below via
+  # upload/download-artifact so it's compiled once, not twice. Both of
+  # those jobs need real binaries present before ANY headless Godot
+  # command touches /shell at all -- shell/scripts/pck_loader.gd
+  # references the PckVerifier class by name at parse time, so a missing
+  # GDExtension binary breaks the whole project's script compilation, not
+  # just PCK loading (verified directly against the real engine, not
+  # assumed -- see docs/research/godot-pck-gdextension.md and
+  # shell/rust/build_gdextension.sh's own comment). That's intentional:
+  # making verification quietly optional whenever the binary happens to be
+  # missing would itself be the kind of dev-convenience bypass CLAUDE.md #3
+  # forbids.
+  build-gdextension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-gdextension-${{ runner.os }}-${{ hashFiles('shell/rust/pck_verify/Cargo.lock', 'tools/Cargo.lock') }}
+
+      - name: Build GDExtension (release)
+        run: shell/rust/build_gdextension.sh --release
+
+      - name: Build sign CLI (release)
+        working-directory: tools
+        run: cargo build --release -p sign
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gdextension-and-sign-linux
+          path: |
+            shell/addons/covelight_pck_verify/bin/
+            tools/target/release/sign
+          if-no-files-found: error
+
   # T1.1 (docs/plan/02-phase1-shell.md): headless Linux export of /shell.
   # Fails the build if the project doesn't export cleanly. A version/export
   # matrix can follow once more than one export target exists.
   godot-export:
+    needs: build-gdextension
     runs-on: ubuntu-latest
     env:
       GODOT_VERSION: 4.7-stable
       GODOT_TEMPLATES_DIR: 4.7.stable
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: gdextension-and-sign-linux
+          path: .
+      - run: chmod +x shell/addons/covelight_pck_verify/bin/* tools/target/release/sign
 
       - name: Cache Godot editor + export templates
         id: godot-cache
@@ -58,15 +108,24 @@ jobs:
           test -f shell/build/shell.x86_64
 
   # T1.2 (docs/plan/02-phase1-shell.md): GUT tests for the shell state
-  # machine, including crash containment. GUT itself, if a test script
-  # fails to parse, prints "Nothing was run" but still exits 0 -- the
-  # final grep guards against that silently going green.
+  # machine, including crash containment. Also T1.4's PCK-verification
+  # tests now that they live in shell/tests/ alongside these -- same GUT
+  # run picks both up. GUT itself, if a test script fails to parse, prints
+  # "Nothing was run" but still exits 0 -- the final grep guards against
+  # that silently going green.
   godot-test:
+    needs: build-gdextension
     runs-on: ubuntu-latest
     env:
       GODOT_VERSION: 4.7-stable
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: gdextension-and-sign-linux
+          path: .
+      - run: chmod +x shell/addons/covelight_pck_verify/bin/* tools/target/release/sign
 
       - name: Cache Godot editor
         id: godot-editor-cache
@@ -189,3 +248,26 @@ jobs:
       - name: cargo clippy
         working-directory: tools
         run: cargo clippy --workspace --all-targets -- -D warnings
+
+  # T1.4 (docs/plan/02-phase1-shell.md, security): the GDExtension crate
+  # itself. Separate from rust-test above (different directory, not part
+  # of the /tools workspace -- shell/rust/pck_verify depends on
+  # covelight-crypto by relative path instead) but the same conventions
+  # apply repo-wide (CLAUDE.md): cargo fmt + clippy -D warnings, real
+  # tests, no exceptions for being a cdylib.
+  rust-test-gdextension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: cargo test
+        working-directory: shell/rust/pck_verify
+        run: cargo test
+      - name: cargo fmt --check
+        working-directory: shell/rust/pck_verify
+        run: cargo fmt --check
+      - name: cargo clippy
+        working-directory: shell/rust/pck_verify
+        run: cargo clippy --all-targets -- -D warnings

@@ -277,3 +277,20 @@ not just the activity's behavior once loaded.
 - **This is not a remote revocation system.** No CRL, no OCSP-equivalent,
   no live check of any kind — see the compromise procedure's honest
   limitation above.
+- **This does not close the gap between verifying a file and Godot loading
+  it.** Godot's `ProjectSettings.load_resource_pack()` takes only a file
+  path — there is no in-memory or pre-mount-hook variant, confirmed against
+  an open Godot engine proposal requesting exactly that capability
+  (`docs/research/godot-pck-gdextension.md`). Verification (T1.4's
+  GDExtension) and the engine's own load are therefore two separate file
+  opens, not one atomic operation, leaving a Time-of-Check-to-Time-of-Use
+  window in principle. Standard file locks are advisory on Linux/Android,
+  so this can't be closed by locking either. It doesn't expand this
+  document's threat model, though: exploiting it needs write access to the
+  exact on-device path between verify and load, which on both tiers
+  already requires something outside "not the adversary" above (another
+  process in the app's own private storage, or a compromised
+  `covelight-syncd`) — not a new class of attacker, just an honestly-named
+  edge of an existing one. T1.4 minimizes the window (verify immediately
+  followed by load, nothing else scheduled between them) without claiming
+  to eliminate it.

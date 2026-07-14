@@ -21,7 +21,7 @@
 
 use std::fs::File;
 use std::io::{self, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub use sha2::{Digest, Sha512};
 
@@ -272,6 +272,40 @@ pub fn verify_file(
 ) -> Result<(), Error> {
     let hasher = hash_file(path)?;
     verify(trusted_keys, hasher, sidecar)
+}
+
+/// `<path>` -> `<path>.sig` — the one place this convention is defined.
+/// Shared by `/tools/sign` and the shell's GDExtension (T1.4) so a sidecar
+/// lookup can never disagree between the tool that writes it and the code
+/// that reads it back.
+pub fn sig_path_for(path: &Path) -> PathBuf {
+    let mut s = path.as_os_str().to_os_string();
+    s.push(".sig");
+    PathBuf::from(s)
+}
+
+/// Raw public-key bytes for every currently-trusted project signing key,
+/// embedded at compile time — no live key-server, no fetch, ever
+/// (CLAUDE.md #5/#11; docs/design/signing.md "Project key storage &
+/// access control"). **Empty until a real project key exists.** Generating
+/// that keypair and committing its public bytes here is a governance/
+/// process decision (who holds signing capability, how the private half is
+/// custodied) — explicitly out of scope for the code that verifies against
+/// this table. An empty table is not a bug: it means every `.pck` fails
+/// verification until a real key is added, which is the correct fail-closed
+/// behavior for "no debug bypass, ever" (CLAUDE.md #3) — there's no
+/// placeholder key here that could be mistaken for a real one.
+pub const TRUSTED_KEY_BYTES: &[[u8; PUBLIC_KEY_LEN]] = &[];
+
+/// [`TRUSTED_KEY_BYTES`], parsed. Malformed entries are skipped rather than
+/// panicking (this crate never panics on data, per the module doc) — in
+/// practice unreachable today since the table is empty, but keeps that
+/// guarantee true if it stops being empty.
+pub fn trusted_keys() -> Vec<PublicKey> {
+    TRUSTED_KEY_BYTES
+        .iter()
+        .filter_map(|bytes| PublicKey::from_bytes(bytes).ok())
+        .collect()
 }
 
 #[cfg(test)]

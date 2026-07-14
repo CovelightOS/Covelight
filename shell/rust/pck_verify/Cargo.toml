@@ -1,0 +1,17 @@
+[package]
+name = "covelight-pck-verify"
+version = "0.1.0"
+edition = "2021"
+description = "Godot 4 GDExtension: verifies a .pck's Ed25519 signature (covelight-crypto, docs/design/signing.md) before the shell ever calls load_resource_pack. Implements T1.4."
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+covelight-crypto = { path = "../../../tools/covelight-crypto" }
+godot = "0.5.4"
+hex = "0.4.3"
+
+[dev-dependencies]
+tempfile = "3.27.0"

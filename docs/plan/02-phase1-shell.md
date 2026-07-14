@@ -29,12 +29,12 @@ Boot → home → activity-running → return-to-home. Crash containment: an act
 - [x] SDK doc sufficient for an outsider to build an activity without reading shell source — `docs/design/activity-sdk.md`
 - [x] Review checklist (`docs/guides/activity-review.md`) encodes constraints #1 and #4 as concrete checks, backed by `tools/lint_activity.sh` (static) and `shell/sdk/text_audit.gd` (runtime), both verified against real hits and real clean output
 
-### [ ] T1.4 — PCK loading + signature verification [CC, security] (depends: T0.3, T0.4)
-GDExtension in Rust wrapping `covelight-crypto`: verify Ed25519 signature per `docs/signing.md` **before** `load_resource_pack`. Unsigned/tampered PCKs are rejected silently from the child's perspective (logged for parents).
+### [x] T1.4 — PCK loading + signature verification [CC, security] (depends: T0.3, T0.4)
+GDExtension in Rust wrapping `covelight-crypto`: verify Ed25519 signature per `docs/design/signing.md` **before** `load_resource_pack`. Unsigned/tampered PCKs are rejected silently from the child's perspective (logged for parents). Research gate (`docs/research/godot-pck-gdextension.md`) confirmed Godot's `load_resource_pack()` is path-only with no pre-mount hook — verify-then-load from outside the engine, exactly as designed, is the only shape the engine supports; no contradiction found. One residual, honestly documented finding not previously known: a TOCTOU window between verify and load (Godot opens its own file handle; locks are advisory on Linux/Android) — doesn't expand `docs/design/signing.md`'s threat model (still requires write access to an already-protected path) but is now named in that doc's "Non-goals" section rather than left implicit.
 **Acceptance:**
-- [ ] Signed PCK loads; unsigned and tampered PCKs do not (automated tests, all three cases)
-- [ ] No debug bypass flag exists in any build configuration (constraint #3)
-- [ ] Same crate consumed here and by `/tools/sign` — no second Ed25519 implementation
+- [x] Signed PCK loads; unsigned and tampered PCKs do not (automated tests, all three cases) — `shell/tests/test_pck_loader.gd`, real Ed25519 signing via a `tools/sign` subprocess (not a hand-built fixture), run locally against Godot 4.7.stable (8/8 passing alongside T1.2's suite) and wired into CI (`godot-test`, `needs: build-gdextension`)
+- [x] No debug bypass flag exists in any build configuration (constraint #3) — verified by design: `covelight_crypto::TRUSTED_KEY_BYTES` ships empty (no real project key exists yet — a governance decision, not this task's), so `PckVerifier::verify_pck` (the only method `PckLoader`/`shell.gd` ever calls in production) currently rejects everything, correctly fail-closed; the test-only `verify_pck_with_key` sibling method is never reachable from production code and performs the same real Ed25519 check against an explicit key rather than a weaker one — documented in the crate's own doc comments
+- [x] Same crate consumed here and by `/tools/sign` — no second Ed25519 implementation — `shell/rust/pck_verify` depends on `covelight-crypto` by relative path; also added `sig_path_for()` and `trusted_keys()` to `covelight-crypto` itself and deduplicated `/tools/sign`'s own copy of the sidecar-path convention into it
 
 ### [ ] T1.5 — Home screen [CC+human]
 Textless activity chooser: large icon tiles, audio preview on tap-hold, launch on tap. Lighthouse/harbor visual identity. Human check: hand it to an actual small child if possible; watch where they get stuck.
