@@ -316,3 +316,50 @@ regression fails the build instead of silently passing.
   against `shell/rust/pck_verify` directly — separate from `rust-test`
   (which only covers the `/tools` workspace) since this crate lives
   outside it, but the same conventions apply (CLAUDE.md).
+- `android-build` (T2.1, `docs/plan/03-phase2-kiosk.md`) is a separate,
+  independent job — see `/app/README.md`. It doesn't depend on
+  `build-gdextension`'s artifact (that's a Linux `.so`, useless on Android);
+  it cross-compiles its own Android binaries instead.
+
+## Android (T2.1)
+
+`/app` embeds the shell as a Godot Android *library* dependency
+(`org.godotengine:godot`, Maven Central) rather than through Godot's own
+self-contained Android export — see `/app/README.md` for why and the full
+build. What lives here:
+
+- `rust/build_gdextension_android.sh` — cross-compiles T1.4's GDExtension
+  for `arm64-v8a` and `armeabi-v7a` (the two ABIs real phones from roughly
+  the last decade actually ship — see ARCHITECTURE.md's "phone already in
+  the drawer" target; `x86`/`x86_64` are emulator-only and skipped) into
+  `addons/covelight_pck_verify/bin/android/<abi>/`. Same hard-prerequisite
+  reasoning as `build_gdextension.sh` above, just for a different OS.
+  Needs an installed Android NDK (`ANDROID_NDK_HOME`, or the default under
+  `~/Library/Android/sdk/ndk` on macOS).
+- `export_presets.cfg`'s `"Android"` preset — used only with
+  `--export-pack` (packs `/shell`'s resources into `shell.pck`; produces no
+  APK/AAB itself, so it needs no Godot export templates — verified
+  directly: `--export-pack` never touches `custom_template/debug` or
+  `custom_template/release`). `/app` bundles the resulting `shell.pck` as a
+  plain asset and loads it via `GodotHost#getCommandLine()`'s `--main-pack`
+  argument, per
+  [Godot's Android library docs](https://docs.godotengine.org/en/stable/tutorials/platform/android/android_library.html).
+- `addons/covelight_pck_verify/covelight_pck_verify.gdextension`'s
+  `android.debug.arm64` / `android.release.arm64` / `android.debug.arm32` /
+  `android.release.arm32` entries — `arm64`/`arm32` are Godot's own
+  architecture feature tags (`Engine::get_architecture_name()`), **not**
+  Android ABI names; verified against the engine's actual feature-tag
+  matcher (`core/extension/gdextension_library_loader.cpp`) rather than
+  copied from an example, since a wrong tag here fails silently (the
+  GDExtension just doesn't load) rather than with a clear error.
+  `--export-pack` does **not** embed these `.so` files into `shell.pck`
+  (confirmed by testing — only the `.gdextension` file itself gets
+  packed); `/app` places them directly in its own `jniLibs/<abi>/` via
+  standard Gradle native-library packaging instead, and Godot's Android
+  runtime resolves the GDExtension by library basename through the normal
+  Android dynamic-linker search path
+  (`platform/android/os_android.cpp`'s `open_dynamic_library` falls back to
+  exactly this when the declared `res://` path isn't an actual packed
+  resource) — the same mechanism Godot's own official Android export uses
+  for GDExtensions, just reached by placing the `.so` ourselves instead of
+  letting Godot's own exporter do it.

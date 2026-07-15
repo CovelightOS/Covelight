@@ -225,15 +225,100 @@ jobs:
           "$GODOT_BIN" --headless --path activities/${{ matrix.activity }} -s addons/gut/gut_cmdln.gd -gexit | tee /tmp/gut-activity-output.log
           grep -q "All tests passed!" /tmp/gut-activity-output.log
 
-  # Placeholder until T2.1 (docs/plan/03-phase2-kiosk.md): Gradle build of
-  # /app. Real job will need a JDK setup step and, later, an Android API
-  # level matrix for the device-test matrix (Phase 3).
+  # T2.1 (docs/plan/03-phase2-kiosk.md): Tier 1 Android kiosk wrapper.
+  # /app is a plain Kotlin app depending on the stock Godot Android engine
+  # library (org.godotengine:godot, Maven Central) -- NOT Godot's own
+  # self-contained export -- so this job independently (a) cross-compiles
+  # the T1.4 GDExtension for Android (shell/rust/build_gdextension_android.sh;
+  # doesn't need the desktop build-gdextension artifact, a completely
+  # different set of binaries for a completely different OS), (b) packs
+  # /shell's resources for Android with `--export-pack` (no APK/AAB
+  # produced by Godot itself here, so no export-templates download needed --
+  # verified locally: `--export-pack` doesn't touch custom_template/debug
+  # or custom_template/release at all), (c) wires both into /app's standard
+  # Gradle source sets (assets/, jniLibs/), and (d) runs a real
+  # `gradlew assembleDebug`, which enforces the CLAUDE.md #9 dependency
+  # audit (assertNoGoogleDependencies) as a preBuild step -- not a separate
+  # optional job, so a Google/Play dependency fails the same build that
+  # produces the APK. Uploads the APK so the required human device-verify
+  # (T2.1's acceptance criterion) doesn't also require a local build.
   android-build:
     runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: 4.7-stable
+      ANDROID_NDK_VERSION: 27.0.12077973
     steps:
       - uses: actions/checkout@v4
-      - name: No-op placeholder
-        run: echo "android-build placeholder — nothing to build yet, filled in by T2.1"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-gdextension-android-${{ runner.os }}-${{ hashFiles('shell/rust/pck_verify/Cargo.lock', 'tools/Cargo.lock') }}
+
+      - name: Install Android NDK
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;${ANDROID_NDK_VERSION}" "platforms;android-36" "build-tools;36.1.0"
+
+      - name: Build GDExtension for Android (release)
+        run: |
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}"
+          shell/rust/build_gdextension_android.sh --release
+
+      - name: Cache Godot editor
+        id: godot-editor-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/godot-editor
+          key: godot-${{ env.GODOT_VERSION }}-linux-editor
+
+      - name: Download Godot editor
+        if: steps.godot-editor-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot-editor
+          curl -fL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot-editor
+
+      - name: Export shell.pck for Android
+        run: |
+          set -euo pipefail
+          GODOT_BIN=$(find ~/godot-editor -maxdepth 1 -type f -iname "Godot*" | head -1)
+          chmod +x "$GODOT_BIN"
+          "$GODOT_BIN" --headless --path shell --import
+          mkdir -p shell/build
+          "$GODOT_BIN" --headless --path shell --export-pack "Android" build/shell.pck
+          test -f shell/build/shell.pck
+
+      - name: Wire GDExtension + PCK into /app
+        run: |
+          set -euo pipefail
+          cp shell/build/shell.pck app/app/src/main/assets/shell.pck
+          mkdir -p app/app/src/main/jniLibs/arm64-v8a app/app/src/main/jniLibs/armeabi-v7a
+          cp shell/addons/covelight_pck_verify/bin/android/arm64-v8a/libcovelight_pck_verify.so app/app/src/main/jniLibs/arm64-v8a/
+          cp shell/addons/covelight_pck_verify/bin/android/armeabi-v7a/libcovelight_pck_verify.so app/app/src/main/jniLibs/armeabi-v7a/
+
+      - name: Gradle build (assembleDebug -- includes the CLAUDE.md #9 dependency audit)
+        working-directory: app
+        run: ./gradlew assembleDebug --console=plain
+
+      - run: test -f app/app/build/outputs/apk/debug/app-debug.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: covelight-app-debug-apk
+          path: app/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
 
   # T0.4 (docs/plan/01-phase0-foundation.md): covelight-crypto + the sign CLI
   # in /tools. Phase 4 adds syncd to this same workspace/job; a Rust

@@ -10,3 +10,7 @@ macos.debug = "res://addons/covelight_pck_verify/bin/libcovelight_pck_verify.dyl
 macos.release = "res://addons/covelight_pck_verify/bin/libcovelight_pck_verify.dylib"
 linux.debug = "res://addons/covelight_pck_verify/bin/libcovelight_pck_verify.so"
 linux.release = "res://addons/covelight_pck_verify/bin/libcovelight_pck_verify.so"
+android.debug.arm64 = "res://addons/covelight_pck_verify/bin/android/arm64-v8a/libcovelight_pck_verify.so"
+android.release.arm64 = "res://addons/covelight_pck_verify/bin/android/arm64-v8a/libcovelight_pck_verify.so"
+android.debug.arm32 = "res://addons/covelight_pck_verify/bin/android/armeabi-v7a/libcovelight_pck_verify.so"
+android.release.arm32 = "res://addons/covelight_pck_verify/bin/android/armeabi-v7a/libcovelight_pck_verify.so"

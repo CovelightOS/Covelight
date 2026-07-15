@@ -78,3 +78,23 @@ test: test-shell
 	for activity in _template animal_sounds shape_sorter color_mixing; do
 		just test-activity "$activity"
 	done
+
+# T2.1 (docs/plan/03-phase2-kiosk.md): builds a debug APK of the Tier 1
+# Android wrapper (/app) -- cross-compiles the GDExtension for Android,
+# packs /shell's resources for Android, wires both into /app's Gradle
+# source sets, then runs a real gradlew assembleDebug (which enforces the
+# CLAUDE.md #9 dependency audit as a preBuild step). Requires an Android
+# SDK + NDK (see app/README.md) beyond /shell's own prerequisites --
+# ANDROID_NDK_HOME must point at the NDK, or the default under
+# ~/Library/Android/sdk/ndk (macOS) is used.
+android-apk: _import
+	#!/usr/bin/env bash
+	set -euo pipefail
+	{{shell_dir}}/rust/build_gdextension_android.sh --release
+	godot --headless --path {{shell_dir}} --export-pack "Android" build/shell.pck
+	mkdir -p app/app/src/main/jniLibs/arm64-v8a app/app/src/main/jniLibs/armeabi-v7a
+	cp {{shell_dir}}/build/shell.pck app/app/src/main/assets/shell.pck
+	cp {{shell_dir}}/addons/covelight_pck_verify/bin/android/arm64-v8a/libcovelight_pck_verify.so app/app/src/main/jniLibs/arm64-v8a/
+	cp {{shell_dir}}/addons/covelight_pck_verify/bin/android/armeabi-v7a/libcovelight_pck_verify.so app/app/src/main/jniLibs/armeabi-v7a/
+	cd app && ./gradlew assembleDebug --console=plain
+	echo "APK: app/app/build/outputs/apk/debug/app-debug.apk"

@@ -8,12 +8,14 @@
 
 ## Tasks
 
-### [ ] T2.1 — Android wrapper for the shell [CC]
-Godot Android export embedded in a Kotlin host app (`/app`). Fullscreen immersive, screen-on policy during activities, hardware back consumed.
+### [ ] T2.1 — Android wrapper for the shell [CC] — CC portion done, awaiting human verification
+Godot Android export embedded in a Kotlin host app (`/app`). Fullscreen immersive, screen-on policy during activities, hardware back consumed. **Not checked off — the human half (a physical Android 8+ device) hasn't happened yet; this box is CC's own honesty marker, not a claim of full completion.**
+
+Built as a plain Kotlin/Gradle app depending on the stock Godot Android engine library (`org.godotengine:godot`, Maven Central) rather than through Godot's own self-contained Android export — keeps `/app` an ordinary, auditable Gradle project for T2.2's Device Owner code to build on, per repo layout. `MainActivity` adds fullscreen immersive mode + keep-screen-on; hardware back needed no code at all — `GodotActivity` already consumes it (forwards to the running engine instead of finishing the Activity, verified against the library's own source at the 4.7-stable tag, not assumed). The T1.4 GDExtension (Ed25519 PCK verification, constraint #3) is cross-compiled for Android (`arm64-v8a` + `armeabi-v7a`) and wired in via standard Gradle `jniLibs/` — confirmed by testing that `--export-pack` does not embed `.gdextension`-declared native libraries into the pck, and that Godot's Android runtime resolves them by basename through the normal Android dynamic-linker path either way (same mechanism Godot's own exporter uses). Full chain of verification (with engine source citations): `shell/README.md`'s "Android (T2.1)" section and `/app/README.md`.
 **Acceptance:**
-- [ ] Shell + T1.6 activities run on a physical Android 8+ device (human verify)
-- [ ] CI builds the APK (fills the android-build placeholder)
-- [ ] Zero Google library dependencies (verified by dependency audit in CI)
+- [ ] **Human: shell + T1.6 activities run on a physical Android 8+ device.** The one acceptance CC cannot do from a desk — x86 emulators specifically cannot substitute (see `/app/README.md`'s "Building" section for why).
+- [x] CI builds the APK — `android-build` in `.github/workflows/build.yml` replaces the T0.2 placeholder with a real `gradlew assembleDebug`, uploaded as an artifact; **not yet observed green in a real CI run** (no CI execution available while building this locally) — the local-build equivalent (identical commands) produced a real, installable `app-debug.apk` with `shell.pck` and both GDExtension `.so`s correctly packed, confirmed with `aapt2 dump badging` and `unzip -l`.
+- [x] Zero Google library dependencies — `assertNoGoogleDependencies` (`app/app/build.gradle.kts`), wired into `preBuild` so it runs on every build; confirmed to actually catch a violation (temporarily added `com.google.android.gms:play-services-base`, watched it fail on the dependency and its transitives, reverted) rather than just existing unexercised.
 
 ### [ ] T2.2 — Device Owner + lock-task kiosk [CC+human, security]
 `DeviceAdminReceiver`, Device Owner policies per ARCHITECTURE §3.1: persistent launcher + lock-task; Wi-Fi/BT/mobile-data disabled; status bar suppressed; installs, safe-mode, and settings-reset blocked; keyguard disabled; boot-persistent.

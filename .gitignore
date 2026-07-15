@@ -40,6 +40,13 @@ captures/
 .cxx/
 build/
 
+# T2.1: shell.pck (godot --export-pack "Android", see /app/README.md) and
+# the Android GDExtension binaries copied into jniLibs are both generated
+# artifacts, not source -- same convention as
+# shell/addons/covelight_pck_verify/bin/ above.
+app/app/src/main/assets/shell.pck
+app/app/src/main/jniLibs/
+
 # Tauri (Node + Rust + platform bundles)
 node_modules/
 dist/
