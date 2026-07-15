@@ -1,12 +1,6 @@
-# Phase 3 — Tier 1 Hardening (skeleton)
+# Phase 3 — Tier 1 Hardening
 
-**Full task breakdown happens when Phase 2 ships.** Scope committed now:
-
-- **Device-test matrix** (`docs/device-matrix.md`): community-run checklist per vendor skin — provisioning success, kiosk persistence, foreground-kill behavior (MIUI is known hostile terrain), boot persistence, radio-policy verification. [CC] builds the checklist + reporting template; [human/community] runs devices. Priority vendors: Samsung, Xiaomi/MIUI-HyperOS, Oppo family, Lenovo/Moto tablets. **Amazon Fire OS gets a row before any support claim is made — verify, don't assume.**
-- **Vendor-quirk fixes**: one task per confirmed quirk, documented per-device, never silently hacked in.
-- **F-Droid submission**: verify current F-Droid inclusion criteria at the time (reproducible build requirements evolve), fix what fails, submit. [CC+human]
-- **Update channel**: how families update the app without OTA-to-child (Companion-mediated app update is the leading design).
-- Parking lot: accessibility features (motor-impairment input options), multi-child profiles.
+Full task breakdown now lives in **[`docs/plan/05-phase3-hardening.md`](05-phase3-hardening.md)** — written ahead of Phase 2 shipping (workflow/template scope only; no invented device findings), with the Phase 2 dependency stated explicitly in that file.
 
 ---
 

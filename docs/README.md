@@ -15,7 +15,8 @@ Map of everything in `/docs`. Repo-root docs (`README.md`, `ARCHITECTURE.md`, `C
 | [01-phase0-foundation.md](plan/01-phase0-foundation.md) — repo, CI, signing design, namespaces                       | ✅                      |
 | [02-phase1-shell.md](plan/02-phase1-shell.md) — Godot shell, SDK, first activities _(critical path)_                 | ✅                      |
 | [03-phase2-kiosk.md](plan/03-phase2-kiosk.md) — Android kiosk + Companion _(first release)_                          | ✅                      |
-| [04-phase3-to-6-skeletons.md](plan/04-phase3-to-6-skeletons.md) — **phases 3, 4, 5 and 6 all live in this one file** | ✅ (skeletal by design) |
+| [05-phase3-hardening.md](plan/05-phase3-hardening.md) — device matrix, vendor quirks, F-Droid, update channel        | ✅                      |
+| [04-phase3-to-6-skeletons.md](plan/04-phase3-to-6-skeletons.md) — **phases 4, 5 and 6 live in this one file**        | ✅ (skeletal by design) |
 
 ## decisions/ — Architecture Decision Records
 
