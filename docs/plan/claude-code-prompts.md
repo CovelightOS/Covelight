@@ -1,22 +1,25 @@
-Implement <TASK ID> from docs/plan/<file>.
+Implement T0.1 from docs/plan/01-phase0-foundation.md — the repo skeleton.
 
-Read first:
+Read first: docs/plan/01-phase0-foundation.md, CLAUDE.md (the Repository
+layout section), docs/README.md.
 
-- docs/plan/<file> — the task, its dependencies, its acceptance criteria
-- CLAUDE.md — inviolable constraints (already auto-loaded; obey without exception)
-- <any doc the task cites>
+Create the directory structure exactly as CLAUDE.md specifies:
+/shell /activities /app /companion /os /syncd /devices /docs /tools
 
-Do not start coding until you have read those and stated back:
+Each directory gets a README.md stating:
 
-1. What you're building, in two sentences
-2. Which CLAUDE.md constraints apply to this task specifically
-3. Anything in the task that is ambiguous — ask me, don't guess
+- what lives there
+- which tier it serves (shared / tier1 / tier2 / meta)
+- its current status (most are "not started — see docs/plan/")
 
-Then implement. Scope: this task only. If you discover work that belongs to
-a different task, note it and stop — do not expand scope.
+The docs/ folder and its contents already exist — verify its internal links
+resolve and that CLAUDE.md's layout section matches reality. If they diverge,
+fix CLAUDE.md in this same PR and say so.
 
-Finish by:
+Add a root .gitignore appropriate for Godot 4 + Rust + Android + Tauri.
 
-- Verifying every Acceptance checkbox in the task, explicitly, one by one
-- Updating the task status in the plan doc ([ ] → [x])
-- Committing on a branch named <task-id>-<short-slug>
+Do NOT add license headers to anything — the license is undecided
+(ADR 0003, task T0.8). Do NOT scaffold any code yet.
+
+Acceptance is the checklist in T0.1. Verify each explicitly, update the
+task status, commit on branch t0.1-repo-skeleton.
